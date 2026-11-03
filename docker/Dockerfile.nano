@@ -10,7 +10,11 @@ FROM dustynv/ros:humble-ros-base-l4t-r32.7.1
 ENV ROS_DOMAIN_ID=20 \
     RMW_IMPLEMENTATION=rmw_fastrtps_cpp
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# La imagen trae la fuente apt de ROS 2 para bionic, firmada con la clave antigua de ROS (vencida desde 2025):
+# apt-get update falla con EXPKEYSIG F42ED6FBAB17C654. Humble ya viene compilado en la imagen, asi que
+# esa fuente no se necesita y se quita antes de instalar.
+RUN rm -f /etc/apt/sources.list.d/ros*.list \
+    && apt-get update && apt-get install -y --no-install-recommends \
         python3-serial python3-yaml v4l-utils usbutils git \
     && rm -rf /var/lib/apt/lists/*
 
