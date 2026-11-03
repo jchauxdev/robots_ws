@@ -1,0 +1,6 @@
+# Mueve el brazo a un estado con nombre definido en el SRDF (home, ready, ...).
+string name
+float64 velocity_scaling
+---
+bool success
+string message

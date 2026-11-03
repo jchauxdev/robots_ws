@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!--
+  Bloque ros2_control. sim_mode:
+    mock   -> mock_components/GenericSystem (sin hardware, sin fisica)
+    gazebo -> ign_ros2_control/IgnitionSystem (Gazebo Fortress + ROS 2 Humble)
+    real   -> no se declara ros2_control: el nodo jc_driver/jetcobot_bridge expone
+              las mismas acciones FollowJointTrajectory sobre el robot real.
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:macro name="jetcobot_ros2_control" params="prefix:='' sim_mode:=mock">
+    <xacro:property name="init" value="${dict(joint1=0.0, joint2=0.0, joint3=-1.5708, joint4=0.0, joint5=0.0, joint6=0.0)}"/>
+
+    <xacro:macro name="pos_joint" params="name initial">
+      <joint name="${prefix}${name}">
+        <command_interface name="position"/>
+        <state_interface name="position">
+          <param name="initial_value">${initial}</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+    </xacro:macro>
+
+    <xacro:if value="${sim_mode != 'real'}">
+      <ros2_control name="JetCobotSystem" type="system">
+        <hardware>
+          <xacro:if value="${sim_mode == 'mock'}">
+            <plugin>mock_components/GenericSystem</plugin>
+          </xacro:if>
+          <xacro:if value="${sim_mode == 'gazebo'}">
+            <plugin>ign_ros2_control/IgnitionSystem</plugin>
+          </xacro:if>
+        </hardware>
+        <xacro:pos_joint name="joint1" initial="${init['joint1']}"/>
+        <xacro:pos_joint name="joint2" initial="${init['joint2']}"/>
+        <xacro:pos_joint name="joint3" initial="${init['joint3']}"/>
+        <xacro:pos_joint name="joint4" initial="${init['joint4']}"/>
+        <xacro:pos_joint name="joint5" initial="${init['joint5']}"/>
+        <xacro:pos_joint name="joint6" initial="${init['joint6']}"/>
+        <xacro:pos_joint name="gripper_left_joint" initial="0.017"/>
+        <xacro:pos_joint name="gripper_right_joint" initial="0.017"/>
+      </ros2_control>
+    </xacro:if>
+  </xacro:macro>
+</robot>

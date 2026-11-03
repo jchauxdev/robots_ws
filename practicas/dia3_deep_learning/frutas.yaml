@@ -1,0 +1,9 @@
+# Dataset de deteccion de frutas (formato Ultralytics YOLO)
+path: datasets/frutas      # carpeta raiz
+train: images/train
+val: images/val
+names:
+  0: manzana
+  1: banano
+  2: naranja
+  3: limon

@@ -1,0 +1,9 @@
+cobot_station:
+  ros__parameters:
+    base_frame: world            # mismo marco que usa pick_place_node (jc_bringup/config/celda.yaml)
+    tray_pose: [0.02, -0.17, 0.05]   # centro de la bandeja con el robot atracado (MEDIR en la celda real)
+    tray_label: aruco_10         # marcador ArUco pegado en la bandeja (diccionario de jc_vision)
+    tray_z_offset: 0.03          # m sobre el marcador al soltar la pieza
+    spacing: 0.035               # m entre unidades en la bandeja
+    max_tray_shift: 0.08         # m maximos entre el marcador y la pose nominal
+    dry_run: false               # true: no mueve el brazo (prueba de la logica)

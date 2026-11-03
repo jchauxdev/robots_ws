@@ -1,0 +1,19 @@
+# Parametros de la aplicacion de la celda (Día 3 en simulación, DA-12; Día 4 con el robot real, DA-17)
+pick_place_node:
+  ros__parameters:
+    base_frame: world
+    approach_height: 0.06      # m sobre la pieza
+    grasp_height: 0.012        # m: altura del TCP al agarrar (mitad de una pieza de 25 mm)
+    lift_height: 0.10
+    velocity_scaling: 0.3
+    observe_state: observe
+    settle_time: 1.0           # s de espera tras llegar a observe
+    detection_window: 1.0      # s minimos de acumulacion de detecciones
+    min_detections: 3          # muestras minimas para estimar la pose (mediana)
+    detection_timeout: 5.0     # s maximos de espera
+    # contenedor por etiqueta: [x, y, z] en base_frame
+    bins:
+      rojo: [0.02, 0.17, 0.05]
+      verde: [0.12, 0.15, 0.05]
+      azul: [0.12, 0.15, 0.05]
+      default: [0.02, 0.17, 0.05]

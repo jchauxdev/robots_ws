@@ -1,0 +1,11 @@
+# Rangos HSV de partida (OpenCV: H 0-179, S y V 0-255). AJUSTAR con la iluminacion real
+# usando practicas/dia2_vision/cv_03_segmentacion.py (barras deslizantes): DA-08 en el PC; recalibrar con la camara del robot en DA-16.
+rojo:
+  ranges: [[[0, 120, 70], [10, 255, 255]], [[170, 120, 70], [179, 255, 255]]]
+  min_area: 250
+verde:
+  ranges: [[[36, 60, 50], [89, 255, 255]]]
+  min_area: 250
+azul:
+  ranges: [[[94, 80, 40], [126, 255, 255]]]
+  min_area: 250

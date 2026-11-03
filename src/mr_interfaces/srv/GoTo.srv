@@ -1,0 +1,5 @@
+# Enviar el robot a un punto con nombre del mapa (no bloqueante).
+string name
+---
+bool accepted
+string message

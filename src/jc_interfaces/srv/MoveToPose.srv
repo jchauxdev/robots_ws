@@ -1,0 +1,7 @@
+# Mueve el TCP del cobot a una pose (planificacion con MoveIt 2).
+geometry_msgs/PoseStamped target
+bool cartesian              # true: trayectoria cartesiana (linea recta)
+float64 velocity_scaling    # (0,1]; 0 => valor por defecto del servidor
+---
+bool success
+string message

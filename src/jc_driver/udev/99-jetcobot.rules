@@ -1,0 +1,6 @@
+# Regla udev de ejemplo: crea /dev/jetcobot y da acceso al grupo dialout.
+# 1) Identifique su adaptador:  udevadm info -a -n /dev/ttyUSB0 | grep -E "idVendor|idProduct|serial" | head
+# 2) Reemplace idVendor/idProduct por los valores reales (ejemplos comunes:
+#    CP210x 10c4:ea60, CH340 1a86:7523, CH9102 1a86:55d4).
+# 3) sudo cp 99-jetcobot.rules /etc/udev/rules.d/ && sudo udevadm control --reload && sudo udevadm trigger
+SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="55d4", SYMLINK+="jetcobot", MODE="0666", GROUP="dialout"

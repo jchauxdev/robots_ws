@@ -1,0 +1,9 @@
+# Resultado de la calibracion mano-ojo: T_brida_camara (eye-in-hand).
+# VALOR NOMINAL tomado del URDF (camera_mount + camera_optical_joint). Este archivo se
+# SOBRESCRIBE con el resultado de: ros2 run jc_vision handeye_calibration (DA-09 en simulación; DA-16 con el robot real).
+parent_frame: link6_flange
+child_frame: camera_calibrated_optical
+translation: [0.0360, 0.0000, 0.0200]
+rotation_xyzw: [-0.000000, -0.000000, -0.707107, 0.707107]
+method: NOMINAL
+samples: 0

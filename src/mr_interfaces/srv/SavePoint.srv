@@ -1,0 +1,5 @@
+# Guarda la pose actual del robot (marco map) como punto con nombre.
+string name
+---
+bool success
+string message

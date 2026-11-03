@@ -1,0 +1,5 @@
+mr_interfaces/Order order
+---
+bool accepted
+string id
+string message

@@ -1,0 +1,161 @@
+<?xml version="1.0"?>
+<!--
+  Robot movil diferencial SENA (Pololu 25D/37D + RoboClaw 2x15A + RPLidar A1 + camara RGB + RealSense D435i).
+  Geometria y mallas tomadas del modelo SolidWorks original (paquete "robot", exportado con sw_urdf_exporter
+  1.6, 2022). Se reorganizo segun REP 105 / REP 103:
+    base_footprint (suelo) -> base_link (origen de la malla) -> ruedas, lidar_link -> laser, camaras.
+  Los valores marcados con "MEDIR" deben verificarse con el robot fisico (DA-14.1).
+-->
+<robot name="mr_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- ===================== Argumentos ===================== -->
+  <xacro:arg name="sim" default="false"/>              <!-- true: agrega plugins y sensores de Gazebo Fortress -->
+  <xacro:arg name="use_realsense" default="true"/>     <!-- agrega el soporte de la D435i (marco d435i_link) -->
+  <xacro:arg name="lidar_yaw" default="3.14159265"/>   <!-- orientacion del 0 grados del RPLidar respecto a x del robot (MEDIR) -->
+
+  <!-- ===================== Parametros geometricos ===================== -->
+  <xacro:property name="PI" value="3.14159265359"/>
+  <xacro:property name="wheel_radius" value="0.045"/>       <!-- rueda Pololu 90x10 mm (malla: diametro 90 mm) -->
+  <xacro:property name="wheel_width" value="0.0184"/>
+  <xacro:property name="wheel_x" value="0.046668"/>         <!-- posicion del eje respecto a base_link -->
+  <xacro:property name="wheel_y" value="0.1008"/>           <!-- separacion entre ruedas = 2*0.1008 = 0.2016 m -->
+  <xacro:property name="wheel_z" value="0.0188"/>
+  <xacro:property name="base_z" value="${wheel_radius - wheel_z}"/>  <!-- altura de base_link sobre el suelo: 0.0262 m -->
+  <xacro:property name="caster_r" value="0.0127"/>          <!-- rueda loca de bola (MEDIR) -->
+  <xacro:property name="caster_x" value="-0.115"/>
+
+  <!-- ===================== Materiales ===================== -->
+  <material name="gris"><color rgba="0.86 0.86 0.86 1.0"/></material>
+  <material name="azul_rueda"><color rgba="0.20 0.22 0.30 1.0"/></material>
+  <material name="blanco"><color rgba="1 1 1 1"/></material>
+  <material name="plata"><color rgba="0.75 0.75 0.75 1"/></material>
+  <material name="negro"><color rgba="0.1 0.1 0.1 1"/></material>
+
+  <!-- ===================== Base ===================== -->
+  <link name="base_footprint"/>
+
+  <joint name="base_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 ${base_z}" rpy="0 0 0"/>
+  </joint>
+
+  <link name="base_link">
+    <inertial>
+      <!-- centro de masa del CSV de SolidWorks expresado en base_link (rotacion de la malla 90 grados) -->
+      <origin xyz="-0.0295 0.0040 0.0922" rpy="0 0 0"/>
+      <mass value="1.4812"/>
+      <inertia ixx="0.0039833" ixy="0" ixz="0" iyy="0.0032037" iyz="0" izz="0.0065433"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 ${PI/2}"/>
+      <geometry><mesh filename="package://mr_description/meshes/base_link.STL"/></geometry>
+      <material name="gris"/>
+    </visual>
+    <collision>
+      <!-- caja envolvente simplificada (la malla tiene 11 MB y no se usa para colision) -->
+      <origin xyz="-0.0162 0 0.110" rpy="0 0 0"/>
+      <geometry><box size="0.292 0.25 0.25"/></geometry>
+    </collision>
+  </link>
+
+  <!-- ===================== Ruedas motrices ===================== -->
+  <xacro:macro name="wheel" params="side sy mesh vis_yaw">
+    <link name="${side}_wheel_link">
+      <inertial>
+        <mass value="0.024801"/>
+        <inertia ixx="1.6454E-05" ixy="0" ixz="0" iyy="3.2587E-05" iyz="0" izz="1.6458E-05"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="${PI/2} 0 ${vis_yaw}"/>
+        <geometry><mesh filename="package://mr_description/meshes/${mesh}"/></geometry>
+        <material name="azul_rueda"/>
+      </visual>
+      <collision>
+        <origin xyz="0 ${sy*wheel_width/2} 0" rpy="${PI/2} 0 0"/>
+        <geometry><cylinder radius="${wheel_radius}" length="${wheel_width}"/></geometry>
+      </collision>
+    </link>
+    <joint name="${side}_wheel_joint" type="continuous">
+      <parent link="base_link"/>
+      <child link="${side}_wheel_link"/>
+      <origin xyz="${wheel_x} ${sy*wheel_y} ${wheel_z}" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>   <!-- velocidad positiva => avance (REP 103) -->
+    </joint>
+  </xacro:macro>
+  <xacro:wheel side="left" sy="1" mesh="RuedaIzquierda_Link.STL" vis_yaw="0"/>
+  <xacro:wheel side="right" sy="-1" mesh="RuedaDerecha_Link.STL" vis_yaw="${PI}"/>
+
+  <!-- ===================== Rueda loca (contacto) ===================== -->
+  <link name="caster_link">
+    <inertial><mass value="0.01"/><inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/></inertial>
+    <collision><geometry><sphere radius="${caster_r}"/></geometry></collision>
+  </link>
+  <joint name="caster_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="caster_link"/>
+    <origin xyz="${caster_x} 0 ${caster_r - base_z}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ===================== RPLidar A1 ===================== -->
+  <link name="lidar_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="${PI/2} 0 ${PI}"/>
+      <geometry><mesh filename="package://mr_description/meshes/Lidar_Link.STL"/></geometry>
+      <material name="negro"/>
+    </visual>
+  </link>
+  <joint name="lidar_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="lidar_link"/>
+    <origin xyz="0.07775 0 0.215" rpy="0 0 0"/>
+  </joint>
+  <!-- marco del haz (frame_id del driver rplidar_ros: "laser"). Altura del plano de barrido ~ 3.5 cm (MEDIR). -->
+  <link name="laser"/>
+  <joint name="laser_joint" type="fixed">
+    <parent link="lidar_link"/>
+    <child link="laser"/>
+    <origin xyz="0 0 0.035" rpy="0 0 $(arg lidar_yaw)"/>
+  </joint>
+
+  <!-- ===================== Camara RGB USB (Logitech Brio en el CAD) ===================== -->
+  <link name="rgb_camera_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="${PI/2} 0 ${PI/2}"/>
+      <geometry><mesh filename="package://mr_description/meshes/Camara_Link.STL"/></geometry>
+      <material name="plata"/>
+    </visual>
+  </link>
+  <joint name="rgb_camera_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="rgb_camera_link"/>
+    <origin xyz="0.096775 -0.0018421 0.1263" rpy="0 0 0"/>
+  </joint>
+  <link name="rgb_camera_optical_frame"/>
+  <joint name="rgb_camera_optical_joint" type="fixed">
+    <parent link="rgb_camera_link"/>
+    <child link="rgb_camera_optical_frame"/>
+    <origin xyz="0 0 0" rpy="${-PI/2} 0 ${-PI/2}"/>   <!-- REP 103: z hacia adelante, x a la derecha -->
+  </joint>
+
+  <!-- ===================== Intel RealSense D435i (nuevo) ===================== -->
+  <!-- El driver realsense2_camera (camera_name:=d435i) publica los TF internos a partir de d435i_link. -->
+  <xacro:if value="$(arg use_realsense)">
+    <link name="d435i_link">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry><box size="0.025 0.090 0.025"/></geometry>   <!-- 90 x 25 x 25 mm -->
+        <material name="negro"/>
+      </visual>
+    </link>
+    <joint name="d435i_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="d435i_link"/>
+      <origin xyz="0.135 0 0.165" rpy="0 0 0"/>   <!-- soporte frontal, bajo el plano del lidar (MEDIR) -->
+    </joint>
+  </xacro:if>
+
+  <xacro:if value="$(arg sim)">
+    <xacro:include filename="$(find mr_description)/urdf/mr_robot.gazebo.xacro"/>
+  </xacro:if>
+</robot>

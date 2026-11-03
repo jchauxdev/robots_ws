@@ -1,0 +1,5 @@
+# Apertura normalizada de la pinza: 0.0 = cerrada, 1.0 = abierta.
+float64 opening
+---
+bool success
+string message

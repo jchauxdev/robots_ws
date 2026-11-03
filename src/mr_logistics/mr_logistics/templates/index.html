@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Logística del laboratorio</title><link rel="stylesheet" href="/static/app.css"></head>
+<body>
+<header><span class="marca" aria-hidden="true"></span><h1>Logística del laboratorio de robótica</h1>
+<nav><a href="/">Pedidos</a><a href="/teleop">Mover el robot</a></nav></header>
+<main>
+ <div>
+  <section aria-labelledby="t-nuevo">
+   <h2 id="t-nuevo">Nuevo pedido</h2>
+   <form id="f">
+    <label for="producto">Producto</label><select id="producto" required></select>
+    <label for="cantidad">Cantidad</label><input id="cantidad" type="number" min="1" max="5" value="1" required>
+    <label for="destino">Entregar en</label><select id="destino" required></select>
+    <button class="primario" type="submit">Enviar pedido</button>
+    <div id="m" class="msg" role="status"></div>
+   </form>
+  </section>
+  <section style="margin-top:16px" aria-labelledby="t-estado">
+   <h2 id="t-estado">Robot y cobot</h2>
+   <dl><dt>Robot</dt><dd id="nav">-</dd><dt>Cobot</dt><dd id="cobot">-</dd>
+       <dt>Posición</dt><dd id="pose">-</dd><dt>Batería</dt><dd id="bat">-</dd></dl>
+   <button id="recibido" style="margin-top:12px">Confirmar que recibí el producto</button>
+   <button id="parar" class="peligro" style="margin-top:12px">Detener robot</button>
+  </section>
+ </div>
+ <div>
+  <section aria-labelledby="t-mapa"><h2 id="t-mapa">Mapa</h2><img id="mapa" alt="Mapa con el robot y las estaciones" src="/api/map.png"></section>
+  <section style="margin-top:16px" aria-labelledby="t-pedidos"><h2 id="t-pedidos">Pedidos</h2><div id="lista"><p class="vacio">Aún no hay pedidos. Cree el primero con el formulario.</p></div></section>
+ </div>
+</main>
+<script>
+const TOKEN = {{ token|tojson }};
+const H = {'Content-Type':'application/json'}; if (TOKEN) H['X-Token'] = TOKEN;
+const q = s => document.querySelector(s);
+const PASOS = ['EN_COLA','HACIA_COBOT','CARGANDO','HACIA_DESTINO','ENTREGADO','COMPLETADO'];
+const NOMBRE = {RECIBIDO:'Recibido',EN_COLA:'En cola',HACIA_COBOT:'Yendo al cobot',ESPERANDO_CARGA:'Avisando al cobot',
+ CARGANDO:'Cobot cargando',HACIA_DESTINO:'Yendo al destino',ENTREGADO:'Entregado',REGRESANDO:'Regresando',
+ COMPLETADO:'Completado',FALLIDO:'Falló',CANCELADO:'Cancelado'};
+const ETQ = ['Cola','Cobot','Carga','Viaje','Entrega','Fin'];
+function paso(e){ if(e==='ESPERANDO_CARGA') return 2; if(e==='REGRESANDO') return 5; return Math.max(0, PASOS.indexOf(e)); }
+let llenado = false;
+async function api(url, body){ const r = await fetch(url + (TOKEN && !body ? '?token='+TOKEN : ''), body ? {method:'POST',headers:H,body:JSON.stringify(body)} : {headers:H}); return [r.ok, await r.json()]; }
+function ruta(o){
+  const k = paso(o.state), fin = o.state==='COMPLETADO', mal = o.state==='FALLIDO'||o.state==='CANCELADO';
+  let h = '<div class="ruta" aria-hidden="true">';
+  PASOS.forEach((_,i)=>{ let c = i<k||fin ? 'hecho' : (i===k ? (mal?'fallo':'actual') : '');
+    if(i) h += `<span class="t ${i<=k||fin?'hecho':''}"></span>`; h += `<span class="p ${c}"></span>`; });
+  return h + '</div><div class="etq" aria-hidden="true">' + ETQ.map(e=>`<span>${e}</span>`).join('') + '</div>';
+}
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+async function refrescar(){
+  try{
+    const [, s] = await api('/api/state');
+    if(!llenado){
+      q('#producto').innerHTML = s.products.map(p=>`<option>${esc(p)}</option>`).join('');
+      q('#destino').innerHTML = s.stations.map(p=>`<option>${esc(p)}</option>`).join(''); llenado = true; }
+    q('#nav').textContent = s.nav_state; q('#cobot').textContent = s.cobot_status;
+    q('#pose').textContent = s.pose ? `x ${s.pose[0].toFixed(2)} m, y ${s.pose[1].toFixed(2)} m` : 'sin localización';
+    q('#bat').textContent = s.battery ? s.battery.toFixed(1)+' V' : '-';
+    if(s.orders.length) q('#lista').innerHTML = s.orders.map(o => `<div class="pedido">
+      <div class="cab"><b>${esc(o.id)}</b><span>${o.quantity} × ${esc(o.product)} hacia ${esc(o.destination)}</span>
+      <span class="estado">${NOMBRE[o.state]||esc(o.state)}</span></div>${ruta(o)}
+      <div class="detalle">${esc(o.detail)}</div>
+      ${['COMPLETADO','FALLIDO','CANCELADO'].includes(o.state) ? '' : `<button data-c="${esc(o.id)}">Cancelar ${esc(o.id)}</button>`}</div>`).join('');
+    q('#mapa').src = '/api/map.png?t=' + Date.now() + (TOKEN ? '&token='+TOKEN : '');
+  }catch(e){ q('#nav').textContent = 'Sin conexión con la App'; }
+}
+q('#f').addEventListener('submit', async ev => { ev.preventDefault();
+  const [ok, r] = await api('/api/orders', {product:q('#producto').value, quantity:+q('#cantidad').value, destination:q('#destino').value});
+  q('#m').textContent = r.message; q('#m').className = 'msg' + (ok ? '' : ' error'); refrescar(); });
+q('#lista').addEventListener('click', async ev => { const id = ev.target.dataset.c; if(id){ await api(`/api/orders/${id}/cancel`, {}); refrescar(); } });
+q('#recibido').addEventListener('click', () => api('/api/confirm', {}));
+q('#parar').addEventListener('click', () => api('/api/stop', {}));
+refrescar(); setInterval(refrescar, 1500);
+</script></body></html>

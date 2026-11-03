@@ -1,0 +1,9 @@
+# Navegar a un punto con nombre (envuelve nav2 NavigateToPose).
+string name
+---
+bool success
+string message
+float32 final_distance     # distancia [m] entre la pose final estimada y el objetivo
+---
+float32 distance_remaining
+string nav_status

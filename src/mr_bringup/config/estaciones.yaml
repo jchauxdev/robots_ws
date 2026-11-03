@@ -1,0 +1,10 @@
+# Estaciones (puntos con nombre) en el marco 'map' del mapa maps/laboratorio.yaml.
+# El origen del mapa es la pose donde arranco la SLAM (punto 'inicio'). x, y en metros; yaw en grados (antihorario).
+# Se pueden editar a mano, o guardar la pose actual del robot con:  ros2 run mr_navigation guardar_punto <nombre>
+frame_id: map
+estaciones:
+  inicio:     {x: 0.00, y: 0.00, yaw_deg: 0.0,   descripcion: "Base / carga de bateria"}
+  cobot:      {x: 0.20, y: 5.15, yaw_deg: -90.0, descripcion: "Atraque de espaldas a la celda del JetCobot"}
+  estacion_A: {x: 3.00, y: 1.00, yaw_deg: 0.0,   descripcion: "Estacion de entrega A"}
+  estacion_B: {x: 8.00, y: 5.00, yaw_deg: 0.0,   descripcion: "Estacion de entrega B (recinto este)"}
+  estacion_C: {x: 9.80, y: 0.00, yaw_deg: -90.0, descripcion: "Estacion de entrega C (esquina sureste)"}

@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>mr_perception</name>
+  <version>1.0.0</version>
+  <description>Camara USB con OpenCV (sin cv_bridge) para el robot movil; util en la Jetson Nano.</description>
+  <maintainer email="julianrenechaux@gmail.com">Julian Rene Chaux Cedeno</maintainer>
+  <license>Apache-2.0</license>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>python3-opencv</exec_depend>
+  <export><build_type>ament_python</build_type></export>
+</package>

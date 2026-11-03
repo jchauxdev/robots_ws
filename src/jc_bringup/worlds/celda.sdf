@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<!--
+  Celda robotica colaborativa (simulacion) - Gazebo Fortress (ign-gazebo 6), ROS 2 Humble.
+  Marco 'world' = base del JetCobot. Superficie de trabajo: plano z = 0.
+  Piezas de 25-30 mm de colores, un marcador ArUco (DICT_4X4_50, id 7) y dos zonas de deposito.
+-->
+<sdf version="1.8">
+  <world name="celda">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin filename="ignition-gazebo-physics-system" name="ignition::gazebo::systems::Physics"/>
+    <plugin filename="ignition-gazebo-user-commands-system" name="ignition::gazebo::systems::UserCommands"/>
+    <plugin filename="ignition-gazebo-scene-broadcaster-system" name="ignition::gazebo::systems::SceneBroadcaster"/>
+    <plugin filename="ignition-gazebo-sensors-system" name="ignition::gazebo::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+
+    <gui fullscreen="0">
+      <camera name="user_camera"><pose>0.75 -0.55 0.55 0 0.45 2.45</pose></camera>
+    </gui>
+
+    <scene>
+      <ambient>0.6 0.6 0.6 1</ambient>
+      <background>0.75 0.80 0.85 1</background>
+      <shadows>true</shadows>
+    </scene>
+
+    <light type="directional" name="sol">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 3 0 0 0</pose>
+      <diffuse>0.9 0.9 0.9 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>-0.3 0.2 -0.9</direction>
+    </light>
+
+    <model name="mesa">
+      <static>true</static>
+      <link name="link">
+        <collision name="c"><geometry><plane><normal>0 0 1</normal><size>2 2</size></plane></geometry>
+          <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface></collision>
+        <visual name="v"><geometry><plane><normal>0 0 1</normal><size>2 2</size></plane></geometry>
+          <material><diffuse>0.85 0.83 0.78 1</diffuse><ambient>0.85 0.83 0.78 1</ambient></material></visual>
+      </link>
+    </model>
+
+    <model name="pieza_roja">
+      <pose>0.16 -0.06 0.013000000000000001 0 0 0</pose>
+      <link name="link">
+        <inertial><mass>0.015</mass><inertia><ixx>1.563e-06</ixx><iyy>1.563e-06</iyy><izz>1.563e-06</izz></inertia></inertial>
+        <collision name="c"><geometry><box><size>0.025 0.025 0.025</size></box></geometry>
+          <surface><friction><ode><mu>1.5</mu><mu2>1.5</mu2></ode></friction></surface></collision>
+        <visual name="v"><geometry><box><size>0.025 0.025 0.025</size></box></geometry>
+          <material><diffuse>0.85 0.05 0.05 1</diffuse><ambient>0.85 0.05 0.05 1</ambient></material></visual>
+      </link>
+    </model>
+
+    <model name="pieza_verde">
+      <pose>0.11 -0.15 0.013000000000000001 0 0 0</pose>
+      <link name="link">
+        <inertial><mass>0.015</mass><inertia><ixx>1.563e-06</ixx><iyy>1.563e-06</iyy><izz>1.563e-06</izz></inertia></inertial>
+        <collision name="c"><geometry><box><size>0.025 0.025 0.025</size></box></geometry>
+          <surface><friction><ode><mu>1.5</mu><mu2>1.5</mu2></ode></friction></surface></collision>
+        <visual name="v"><geometry><box><size>0.025 0.025 0.025</size></box></geometry>
+          <material><diffuse>0.05 0.65 0.10 1</diffuse><ambient>0.05 0.65 0.10 1</ambient></material></visual>
+      </link>
+    </model>
+
+    <model name="pieza_azul">
+      <pose>0.19 -0.14 0.0155 0 0 0</pose>
+      <link name="link">
+        <inertial><mass>0.015</mass><inertia><ixx>1.711e-06</ixx><iyy>1.711e-06</iyy><izz>1.172e-06</izz></inertia></inertial>
+        <collision name="c"><geometry><cylinder><radius>0.0125</radius><length>0.03</length></cylinder></geometry>
+          <surface><friction><ode><mu>1.5</mu><mu2>1.5</mu2></ode></friction></surface></collision>
+        <visual name="v"><geometry><cylinder><radius>0.0125</radius><length>0.03</length></cylinder></geometry>
+          <material><diffuse>0.05 0.20 0.85 1</diffuse><ambient>0.05 0.20 0.85 1</ambient></material></visual>
+      </link>
+    </model>
+    <include><uri>model://aruco_7</uri><name>aruco_7</name><pose>0.10 -0.04 0 0 0 0</pose></include>
+    <include><uri>model://zona_deposito</uri><name>deposito_a</name><pose>0.02 0.17 0 0 0 0</pose></include>
+    <include><uri>model://zona_deposito</uri><name>deposito_b</name><pose>0.12 0.15 0 0 0 0</pose></include>
+  </world>
+</sdf>

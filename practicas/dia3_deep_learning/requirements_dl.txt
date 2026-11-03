@@ -1,0 +1,8 @@
+# PC con GPU NVIDIA o CPU (x86_64). En Jetson (JetPack 6.x) instale torch/torchvision con las
+# ruedas para aarch64 indicadas en la guia de Ultralytics para NVIDIA Jetson (ver DA-16).
+ultralytics>=8.3
+torch>=2.3
+torchvision>=0.18
+opencv-python>=4.8
+onnx
+onnxscript   # requerido por torch.onnx.export en PyTorch >= 2.5

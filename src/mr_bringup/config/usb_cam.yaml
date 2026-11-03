@@ -1,0 +1,13 @@
+# Camara RGB USB (usb_cam 0.8.x, Humble). Liste formatos con: v4l2-ctl --list-formats-ext -d /dev/video0
+/**:
+  ros__parameters:
+    video_device: /dev/video0
+    framerate: 15.0
+    io_method: mmap
+    frame_id: rgb_camera_optical_frame
+    pixel_format: mjpeg2rgb       # si su version no lo admite: ros2 run usb_cam usb_cam_node_exe --ros-args -p pixel_format:=test
+    image_width: 640
+    image_height: 480
+    camera_name: rgb_camera
+    camera_info_url: ''           # tras calibrar: file:///home/robot/.ros/camera_info/rgb_camera.yaml
+    autofocus: false

@@ -1,0 +1,28 @@
+# Parametros del nodo mr_base (RoboClaw 2x15A). Valores nominales: CALIBRAR con 'ros2 run mr_base mover' (DA-12.1).
+/**/mr_base:
+  ros__parameters:
+    port: /dev/roboclaw          # enlace creado por la regla udev 99-mr-robot.rules (antes /dev/ttyACM0)
+    baud: 38400                  # igual al configurado en Motion Studio (por USB no influye)
+    address: 128                 # Packet Serial Address (0x80)
+    # --- motores y ruedas (elija la fila de su motor; ver tabla en DA-12.1) ---
+    encoder_cpr: 48.0            # Pololu 25D: 48 CPR | Pololu 37D: 64 CPR (eje del motor, 4 flancos)
+    gear_ratio: 46.85            # 25D 47:1 = 46.85 | 37D 131:1 = 131.25 | 37D 100:1 = 100 | 37D 150:1 = 150
+    wheel_diameter: 0.090        # rueda Pololu 90 x 10 mm
+    ticks_per_meter: 0.0         # 0 => cpr*gear/(pi*D). Tras calibrar, escriba aqui el valor medido
+    left_scale: 1.0              # correccion por rueda (UMBmark): tpm_izq = tpm * left_scale
+    right_scale: 1.0
+    wheel_separation: 0.2016     # distancia entre centros de contacto de las ruedas (CALIBRAR con 'angular')
+    left_motor: 2                # el motor izquierdo esta cableado a M2 (M1 = derecho)
+    invert_left: false           # true si al avanzar el encoder izquierdo cuenta hacia atras
+    invert_right: false
+    # --- limites ---
+    max_linear_speed: 0.40       # m/s
+    max_angular_speed: 2.0       # rad/s
+    max_wheel_speed: 0.50        # m/s por rueda (<= 80 % de QPPS/ticks_per_meter)
+    acceleration: 0.6            # m/s^2 (rampa del comando 40 del RoboClaw)
+    cmd_timeout: 0.5             # s sin cmd_vel => frena
+    status_bits: v5              # significado de 'Read Status': v5 (manual rev. 5.6) | actual (controladores recientes, basicmicro_python)
+    rate: 20.0                   # Hz de lectura de encoders y publicacion de odometria
+    odom_frame: odom
+    base_frame: base_footprint
+    publish_tf: true

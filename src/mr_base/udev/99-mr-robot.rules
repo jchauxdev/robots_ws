@@ -1,0 +1,9 @@
+# Reglas udev del robot movil (copiar a /etc/udev/rules.d/ y recargar: sudo udevadm control --reload-rules && sudo udevadm trigger)
+# RoboClaw (USB CDC de Atmel 03eb:2404, verificado con 'udevadm info' en la version anterior del curso)
+SUBSYSTEM=="tty", ATTRS{idVendor}=="03eb", ATTRS{idProduct}=="2404", MODE="0666", GROUP="dialout", SYMLINK+="roboclaw"
+# RPLidar A1/A2 (puente USB-serie Silicon Labs CP210x 10c4:ea60; igual que scripts/rplidar.rules de Slamtec)
+KERNEL=="ttyUSB*", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", MODE="0666", GROUP="dialout", SYMLINK+="rplidar"
+# Hokuyo URG-04LX-UG01 (opcional, 15d1:0000)
+SUBSYSTEM=="tty", ATTRS{idVendor}=="15d1", ATTRS{idProduct}=="0000", MODE="0666", GROUP="dialout", SYMLINK+="hokuyo"
+# NOTA: si hay dos adaptadores CP210x (p. ej. RPLidar y otro dispositivo), distinga por numero de serie:
+#   udevadm info -a -n /dev/ttyUSB0 | grep '{serial}'   y agregue ATTRS{serial}=="..." a la regla.

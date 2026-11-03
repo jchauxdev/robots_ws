@@ -1,0 +1,48 @@
+/* App logistica SENA: verde institucional, tinta azul, ambar para "en curso". Sin fuentes externas
+   (la red del robot suele no tener Internet). */
+:root{--verde:#39A900;--verde-osc:#2b7d00;--tinta:#1F2A44;--papel:#fff;--niebla:#EEF1F4;--ambar:#E8A317;--rojo:#C62828;--gris:#6B7385}
+*{box-sizing:border-box}
+body{margin:0;background:var(--niebla);color:var(--tinta);font:16px/1.5 Ubuntu,"Segoe UI",system-ui,sans-serif}
+header{background:var(--tinta);color:#fff;padding:12px 16px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+header h1{font-size:1.15rem;margin:0;font-weight:500}
+header .marca{width:14px;height:14px;background:var(--verde);border-radius:3px}
+header nav{margin-left:auto;display:flex;gap:12px}
+header a{color:#cfe8bf;text-decoration:none}
+header a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--ambar);outline-offset:2px}
+main{display:grid;grid-template-columns:minmax(280px,360px) 1fr;gap:16px;padding:16px;max-width:1280px;margin:auto}
+@media (max-width:820px){main{grid-template-columns:1fr}}
+section{background:var(--papel);border-radius:8px;padding:16px}
+h2{font-size:1rem;margin:0 0 12px;font-weight:600}
+label{display:block;font-size:.875rem;color:var(--gris);margin:10px 0 4px}
+select,input{width:100%;padding:10px;border:1px solid #c9cfd8;border-radius:6px;font:inherit;background:#fff}
+button{font:inherit;border:0;border-radius:6px;padding:10px 14px;cursor:pointer;background:var(--niebla);color:var(--tinta)}
+button.primario{background:var(--verde);color:#fff;width:100%;margin-top:14px;font-weight:600}
+button.primario:hover{background:var(--verde-osc)}
+button.peligro{background:var(--rojo);color:#fff}
+.msg{min-height:1.5em;font-size:.875rem;margin-top:8px}
+.msg.error{color:var(--rojo)}
+dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0;font-size:.9rem}
+dt{color:var(--gris)}dd{margin:0;font-variant-numeric:tabular-nums}
+#mapa{width:100%;height:auto;border-radius:6px;background:#ccc;image-rendering:pixelated}
+.pedido{border-top:1px solid var(--niebla);padding:12px 0}
+.pedido:first-child{border-top:0}
+.cab{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.cab b{font-variant-numeric:tabular-nums}
+.cab .estado{margin-left:auto;font-size:.85rem;font-weight:600}
+.detalle{font-size:.85rem;color:var(--gris)}
+/* Recorrido del pedido: el elemento distintivo de la App */
+.ruta{display:flex;align-items:center;margin:10px 0 4px}
+.ruta .p{width:14px;height:14px;border-radius:50%;background:#d5dae2;flex:none;position:relative}
+.ruta .t{height:4px;background:#d5dae2;flex:1}
+.ruta .hecho{background:var(--verde)}
+.ruta .actual{background:var(--ambar);box-shadow:0 0 0 4px #e8a31733}
+.ruta .fallo{background:var(--rojo)}
+.etq{display:flex;justify-content:space-between;font-size:.72rem;color:var(--gris)}
+.vacio{color:var(--gris);font-size:.9rem}
+@media (prefers-reduced-motion:no-preference){.ruta .actual{animation:lat 1.6s ease-in-out infinite}}
+@keyframes lat{50%{box-shadow:0 0 0 8px #e8a31711}}
+/* Teleoperacion */
+.pad{display:grid;grid-template-columns:repeat(3,minmax(72px,110px));gap:10px;justify-content:center;margin:16px 0}
+.pad button{height:88px;font-size:1.8rem;background:var(--tinta);color:#fff;touch-action:none;user-select:none}
+.pad button:active,.pad button.on{background:var(--verde)}
+.pad .stop{background:var(--rojo)}

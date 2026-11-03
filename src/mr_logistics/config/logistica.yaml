@@ -1,0 +1,20 @@
+# Parametros comunes de la logistica. 'products' debe coincidir con las etiquetas que publica la vision
+# del cobot (jc_vision): colores ("rojo", "verde", "azul"), marcadores ("aruco_7") o clases COCO ("apple"...).
+mission_manager:
+  ros__parameters:
+    pickup_station: cobot
+    home_station: inicio
+    unload_time: 8.0          # s de espera en la estacion destino (o boton "Confirmar que recibi")
+    return_home: true
+    load_timeout: 300.0
+    nav_retries: 1
+    max_quantity: 5
+    products: [rojo, verde, azul, aruco_7, apple, orange, banana]
+/**/logistics_web:
+  ros__parameters:
+    port: 8080
+    host: 0.0.0.0
+    access_token: ''          # opcional: exige ?token=... en la API
+    teleop_max_linear: 0.25
+    teleop_max_angular: 1.0
+    products: [rojo, verde, azul, aruco_7, apple, orange, banana]

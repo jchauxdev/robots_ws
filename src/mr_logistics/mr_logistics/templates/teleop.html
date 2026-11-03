@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mover el robot</title><link rel="stylesheet" href="/static/app.css"></head>
+<body>
+<header><span class="marca" aria-hidden="true"></span><h1>Mover el robot</h1>
+<nav><a href="/">Pedidos</a><a href="/teleop">Mover el robot</a></nav></header>
+<main style="grid-template-columns:1fr">
+<section>
+ <p>Mantenga presionada una flecha para mover el robot; al soltarla se detiene. Funciona solo si no hay un pedido en curso.</p>
+ <label for="vel">Velocidad máxima: <span id="vv">0.15</span> m/s</label>
+ <input id="vel" type="range" min="0.05" max="0.25" step="0.05" value="0.15">
+ <div class="pad">
+  <span></span><button data-v="1" data-w="0" aria-label="Avanzar">▲</button><span></span>
+  <button data-v="0" data-w="1" aria-label="Girar a la izquierda">◀</button>
+  <button class="stop" data-v="0" data-w="0" aria-label="Detener">■</button>
+  <button data-v="0" data-w="-1" aria-label="Girar a la derecha">▶</button>
+  <span></span><button data-v="-1" data-w="0" aria-label="Retroceder">▼</button><span></span>
+ </div>
+ <div id="m" class="msg" role="status"></div>
+</section></main>
+<script>
+const TOKEN = {{ token|tojson }}; const H = {'Content-Type':'application/json'}; if (TOKEN) H['X-Token'] = TOKEN;
+let cmd = null, timer = null; const vel = document.getElementById('vel');
+vel.oninput = () => document.getElementById('vv').textContent = vel.value;
+async function send(v, w){ const r = await fetch('/api/cmd_vel', {method:'POST', headers:H, body:JSON.stringify({v, w})});
+  const j = await r.json(); document.getElementById('m').textContent = r.ok ? '' : j.message; }
+function start(b){ const s = +vel.value; cmd = [b.dataset.v * s, b.dataset.w * s * 4]; b.classList.add('on');
+  send(...cmd); clearInterval(timer); timer = setInterval(() => cmd && send(...cmd), 100); }
+function stop(){ cmd = null; clearInterval(timer); document.querySelectorAll('.pad button').forEach(x => x.classList.remove('on')); send(0, 0); }
+document.querySelectorAll('.pad button').forEach(b => {
+  b.addEventListener('pointerdown', e => { e.preventDefault(); b.setPointerCapture(e.pointerId); start(b); });
+  ['pointerup','pointercancel','lostpointercapture'].forEach(t => b.addEventListener(t, stop));
+  b.addEventListener('keydown', e => { if((e.key===' '||e.key==='Enter') && !e.repeat){ e.preventDefault(); start(b); } });
+  b.addEventListener('keyup', e => { if(e.key===' '||e.key==='Enter') stop(); });
+});
+window.addEventListener('blur', stop);
+</script></body></html>

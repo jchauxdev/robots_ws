@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>mr_bringup</name>
+  <version>1.0.0</version>
+  <description>Lanzamientos del robot movil: real, virtual (sin GPU), Gazebo, SLAM, Nav2 y RViz2.</description>
+  <maintainer email="julianrenechaux@gmail.com">Julian Rene Chaux Cedeno</maintainer>
+  <license>Apache-2.0</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <exec_depend>mr_description</exec_depend>
+  <exec_depend>mr_base</exec_depend>
+  <exec_depend>mr_navigation</exec_depend>
+  <exec_depend>mr_sim</exec_depend>
+  <exec_depend>slam_toolbox</exec_depend>
+  <exec_depend>nav2_bringup</exec_depend>
+  <exec_depend>nav2_map_server</exec_depend>
+  <exec_depend>rviz2</exec_depend>
+  <!-- Opcionales segun el equipo (no se declaran para no forzar rosdep en la Jetson Nano):
+       rplidar_ros, usb_cam, realsense2_camera, ros_gz_sim, ros_gz_bridge, teleop_twist_keyboard -->
+  <export><build_type>ament_cmake</build_type></export>
+</package>

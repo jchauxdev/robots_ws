@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!--
+  Descripcion completa de la celda JetCobot.
+  Uso:  xacro jetcobot.urdf.xacro sim_mode:=mock|gazebo|real
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="jetcobot">
+  <xacro:arg name="sim_mode" default="mock"/>
+  <xacro:arg name="prefix" default=""/>
+  <xacro:arg name="tcp_offset" default="0.095"/>
+  <xacro:arg name="controllers_file" default="$(find jc_description)/config/ros2_controllers.yaml"/>
+
+  <xacro:include filename="$(find jc_description)/urdf/jetcobot_macro.xacro"/>
+  <xacro:include filename="$(find jc_description)/urdf/jetcobot.ros2_control.xacro"/>
+  <xacro:include filename="$(find jc_description)/urdf/jetcobot.gazebo.xacro"/>
+
+  <link name="world"/>
+
+  <xacro:jetcobot prefix="$(arg prefix)" parent="world" tcp_offset="$(arg tcp_offset)"/>
+  <xacro:jetcobot_ros2_control prefix="$(arg prefix)" sim_mode="$(arg sim_mode)"/>
+
+  <xacro:if value="${'$(arg sim_mode)' == 'gazebo'}">
+    <xacro:jetcobot_gazebo prefix="$(arg prefix)" controllers_file="$(arg controllers_file)"/>
+  </xacro:if>
+</robot>

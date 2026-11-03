@@ -1,0 +1,6 @@
+# Accion didactica (Dia 2): cuenta regresiva con realimentacion.
+int32 seconds
+---
+bool finished
+---
+int32 remaining

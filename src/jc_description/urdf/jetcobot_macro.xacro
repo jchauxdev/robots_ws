@@ -1,0 +1,243 @@
+<?xml version="1.0"?>
+<!--
+  Modelo cinematico del JetCobot (Yahboom), equivalente al myCobot 280 Jetson Nano
+  (Elephant Robotics). Los origenes y ejes de las articulaciones se toman de
+  mycobot_description/urdf/mycobot_280_jn/mycobot_280_jn.urdf (rama humble de
+  github.com/elephantrobotics/mycobot_ros2), de modo que 0 rad en el modelo
+  corresponde a 0 grados en pymycobot (send_angles / get_angles).
+  La geometria visual/colision se aproxima con primitivas para que el modelo
+  funcione en RViz y Gazebo sin mallas externas. Los limites articulares
+  siguen la documentacion de pymycobot (MyCobot 280, send_angle).
+  Las masas son estimaciones (masa total del brazo ~1.03 kg segun fabricante).
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:property name="PI" value="3.14159265359"/>
+  <xacro:property name="DEG" value="${PI/180.0}"/>
+  <xacro:property name="VEL" value="1.5"/>    <!-- rad/s, limite conservador para planificacion -->
+  <xacro:property name="EFF" value="5.0"/>    <!-- N.m (referencial) -->
+
+  <!-- Inercia de un cilindro solido orientado segun su eje z local -->
+  <xacro:macro name="cyl_inertial" params="m r h xyz rpy">
+    <inertial>
+      <origin xyz="${xyz}" rpy="${rpy}"/>
+      <mass value="${m}"/>
+      <inertia ixx="${m*(3*r*r+h*h)/12}" ixy="0" ixz="0"
+               iyy="${m*(3*r*r+h*h)/12}" iyz="0" izz="${m*r*r/2}"/>
+    </inertial>
+  </xacro:macro>
+
+  <xacro:macro name="box_inertial" params="m x y z xyz">
+    <inertial>
+      <origin xyz="${xyz}" rpy="0 0 0"/>
+      <mass value="${m}"/>
+      <inertia ixx="${m*(y*y+z*z)/12}" ixy="0" ixz="0"
+               iyy="${m*(x*x+z*z)/12}" iyz="0" izz="${m*(x*x+y*y)/12}"/>
+    </inertial>
+  </xacro:macro>
+
+  <!-- Eslabon cilindrico con visual + colision + inercia -->
+  <xacro:macro name="cyl_link" params="name r h xyz rpy m color">
+    <link name="${name}">
+      <visual>
+        <origin xyz="${xyz}" rpy="${rpy}"/>
+        <geometry><cylinder radius="${r}" length="${h}"/></geometry>
+        <material name="${color}"/>
+      </visual>
+      <collision>
+        <origin xyz="${xyz}" rpy="${rpy}"/>
+        <geometry><cylinder radius="${r}" length="${h}"/></geometry>
+      </collision>
+      <xacro:cyl_inertial m="${m}" r="${r}" h="${h}" xyz="${xyz}" rpy="${rpy}"/>
+    </link>
+  </xacro:macro>
+
+  <xacro:macro name="jetcobot" params="prefix:='' parent:=world tcp_offset:=0.095
+                                         cam_x:=0.036 cam_y:=0.0 cam_z:=0.020">
+
+    <material name="blanco"><color rgba="0.92 0.92 0.92 1"/></material>
+    <material name="gris"><color rgba="0.35 0.35 0.38 1"/></material>
+    <material name="negro"><color rgba="0.08 0.08 0.08 1"/></material>
+    <material name="verde_sena"><color rgba="0.22 0.66 0.0 1"/></material>
+
+    <!-- ===================== BASE ===================== -->
+    <link name="${prefix}base_link">
+      <visual>
+        <origin xyz="0 0 0.0625" rpy="0 0 0"/>
+        <geometry><cylinder radius="0.045" length="0.125"/></geometry>
+        <material name="gris"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0.0625" rpy="0 0 0"/>
+        <geometry><cylinder radius="0.045" length="0.125"/></geometry>
+      </collision>
+      <xacro:cyl_inertial m="0.33" r="0.045" h="0.125" xyz="0 0 0.0625" rpy="0 0 0"/>
+    </link>
+
+    <joint name="${prefix}base_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child link="${prefix}base_link"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+
+    <!-- ===================== J1 ===================== -->
+    <xacro:cyl_link name="${prefix}link1" r="0.030" h="0.058" xyz="0 0 -0.029" rpy="0 0 0" m="0.12" color="blanco"/>
+    <joint name="${prefix}joint1" type="revolute">
+      <parent link="${prefix}base_link"/>
+      <child link="${prefix}link1"/>
+      <origin xyz="0 0 0.15756" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="${-168*DEG}" upper="${168*DEG}" effort="${EFF}" velocity="${VEL}"/>
+    </joint>
+
+    <!-- ===================== J2 ===================== -->
+    <xacro:cyl_link name="${prefix}link2" r="0.024" h="0.1104" xyz="-0.0552 0 0" rpy="0 ${PI/2} 0" m="0.12" color="blanco"/>
+    <joint name="${prefix}joint2" type="revolute">
+      <parent link="${prefix}link1"/>
+      <child link="${prefix}link2"/>
+      <origin xyz="0 0 -0.001" rpy="0 ${PI/2} ${-PI/2}"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="${-135*DEG}" upper="${135*DEG}" effort="${EFF}" velocity="${VEL}"/>
+    </joint>
+
+    <!-- ===================== J3 ===================== -->
+    <link name="${prefix}link3">
+      <visual>
+        <origin xyz="-0.048 0 0" rpy="0 ${PI/2} 0"/>
+        <geometry><cylinder radius="0.022" length="0.096"/></geometry>
+        <material name="blanco"/>
+      </visual>
+      <visual>
+        <origin xyz="-0.096 0 0.0323" rpy="0 0 0"/>
+        <geometry><cylinder radius="0.020" length="0.0646"/></geometry>
+        <material name="blanco"/>
+      </visual>
+      <collision>
+        <origin xyz="-0.048 0 0" rpy="0 ${PI/2} 0"/>
+        <geometry><cylinder radius="0.022" length="0.096"/></geometry>
+      </collision>
+      <collision>
+        <origin xyz="-0.096 0 0.0323" rpy="0 0 0"/>
+        <geometry><cylinder radius="0.020" length="0.0646"/></geometry>
+      </collision>
+      <xacro:cyl_inertial m="0.10" r="0.022" h="0.096" xyz="-0.06 0 0.01" rpy="0 ${PI/2} 0"/>
+    </link>
+    <joint name="${prefix}joint3" type="revolute">
+      <parent link="${prefix}link2"/>
+      <child link="${prefix}link3"/>
+      <origin xyz="-0.1104 0 0" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="${-150*DEG}" upper="${150*DEG}" effort="${EFF}" velocity="${VEL}"/>
+    </joint>
+
+    <!-- ===================== J4 ===================== -->
+    <xacro:cyl_link name="${prefix}link4" r="0.020" h="0.07318" xyz="0 -0.03659 0" rpy="${PI/2} 0 0" m="0.08" color="blanco"/>
+    <joint name="${prefix}joint4" type="revolute">
+      <parent link="${prefix}link3"/>
+      <child link="${prefix}link4"/>
+      <origin xyz="-0.096 0 0.06462" rpy="0 0 ${-PI/2}"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="${-145*DEG}" upper="${145*DEG}" effort="${EFF}" velocity="${VEL}"/>
+    </joint>
+
+    <!-- ===================== J5 ===================== -->
+    <xacro:cyl_link name="${prefix}link5" r="0.020" h="0.0456" xyz="0 0.0228 0" rpy="${PI/2} 0 0" m="0.07" color="blanco"/>
+    <joint name="${prefix}joint5" type="revolute">
+      <parent link="${prefix}link4"/>
+      <child link="${prefix}link5"/>
+      <origin xyz="0 -0.07318 0" rpy="${PI/2} ${-PI/2} 0"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="${-155*DEG}" upper="${160*DEG}" effort="${EFF}" velocity="${VEL}"/>
+    </joint>
+
+    <!-- ===================== J6 (brida) ===================== -->
+    <xacro:cyl_link name="${prefix}link6_flange" r="0.020" h="0.010" xyz="0 0 -0.005" rpy="0 0 0" m="0.03" color="negro"/>
+    <joint name="${prefix}joint6" type="revolute">
+      <parent link="${prefix}link5"/>
+      <child link="${prefix}link6_flange"/>
+      <origin xyz="0 0.0456 0" rpy="${-PI/2} 0 0"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="${-180*DEG}" upper="${180*DEG}" effort="${EFF}" velocity="${VEL}"/>
+    </joint>
+
+    <!-- ===================== PINZA (simplificada, paralela) ===================== -->
+    <link name="${prefix}gripper_base">
+      <visual>
+        <origin xyz="0 0 0.020" rpy="0 0 0"/>
+        <geometry><box size="0.050 0.030 0.040"/></geometry>
+        <material name="negro"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0.020" rpy="0 0 0"/>
+        <geometry><box size="0.050 0.030 0.040"/></geometry>
+      </collision>
+      <xacro:box_inertial m="0.08" x="0.05" y="0.03" z="0.04" xyz="0 0 0.02"/>
+    </link>
+    <joint name="${prefix}gripper_mount" type="fixed">
+      <parent link="${prefix}link6_flange"/>
+      <child link="${prefix}gripper_base"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+
+    <xacro:macro name="finger" params="side sign">
+      <link name="${prefix}gripper_${side}_finger">
+        <visual>
+          <origin xyz="0 0 0.0275" rpy="0 0 0"/>
+          <geometry><box size="0.008 0.020 0.055"/></geometry>
+          <material name="verde_sena"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0.0275" rpy="0 0 0"/>
+          <geometry><box size="0.008 0.020 0.055"/></geometry>
+        </collision>
+        <xacro:box_inertial m="0.01" x="0.008" y="0.02" z="0.055" xyz="0 0 0.0275"/>
+      </link>
+      <joint name="${prefix}gripper_${side}_joint" type="prismatic">
+        <parent link="${prefix}gripper_base"/>
+        <child link="${prefix}gripper_${side}_finger"/>
+        <origin xyz="${sign*0.004} 0 0.040" rpy="0 0 0"/>
+        <axis xyz="${sign} 0 0"/>
+        <!-- 0 = cerrada; 0.017 m por dedo = apertura total ~34 mm -->
+        <limit lower="0.0" upper="0.017" effort="20.0" velocity="0.05"/>
+      </joint>
+    </xacro:macro>
+    <xacro:finger side="left" sign="1"/>
+    <xacro:finger side="right" sign="-1"/>
+
+    <!-- Punto central de la herramienta (TCP). VERIFICAR tcp_offset midiendo la pinza real. -->
+    <link name="${prefix}tcp"/>
+    <joint name="${prefix}tcp_joint" type="fixed">
+      <parent link="${prefix}link6_flange"/>
+      <child link="${prefix}tcp"/>
+      <origin xyz="0 0 ${tcp_offset}" rpy="0 0 0"/>
+    </joint>
+
+    <!-- ===================== CAMARA EN MANO (eye-in-hand) ===================== -->
+    <!-- Valor NOMINAL. El valor real se obtiene con la calibracion mano-ojo (Dia 4). -->
+    <link name="${prefix}camera_link">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry><box size="0.015 0.040 0.025"/></geometry>
+        <material name="negro"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry><box size="0.015 0.040 0.025"/></geometry>
+      </collision>
+      <xacro:box_inertial m="0.02" x="0.015" y="0.04" z="0.025" xyz="0 0 0"/>
+    </link>
+    <joint name="${prefix}camera_mount" type="fixed">
+      <parent link="${prefix}link6_flange"/>
+      <child link="${prefix}camera_link"/>
+      <!-- camera_link (x hacia adelante) alineado con el eje z de la brida -->
+      <origin xyz="${cam_x} ${cam_y} ${cam_z}" rpy="0 ${-PI/2} 0"/>
+    </joint>
+    <link name="${prefix}camera_optical_frame"/>
+    <joint name="${prefix}camera_optical_joint" type="fixed">
+      <parent link="${prefix}camera_link"/>
+      <child link="${prefix}camera_optical_frame"/>
+      <!-- Convencion REP-103: optico z adelante, x derecha, y abajo -->
+      <origin xyz="0 0 0" rpy="${-PI/2} 0 ${-PI/2}"/>
+    </joint>
+  </xacro:macro>
+</robot>

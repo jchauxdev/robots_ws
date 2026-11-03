@@ -1,0 +1,15 @@
+jetcobot_bridge:
+  ros__parameters:
+    port: /dev/ttyUSB0        # o /dev/jetcobot si se instala la regla udev
+    baud: 1000000             # valor usado por las apps del instructor (MyCobot280)
+    simulate: false
+    publish_rate: 15.0        # Hz de /joint_states
+    stream_rate: 10.0         # Hz maximos de send_angles durante una trayectoria
+    max_joint_speed_deg_s: 150.0
+    min_speed: 10
+    max_speed: 80
+    joint_offsets_deg: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    goal_tolerance_deg: 2.0
+    settle_timeout: 15.0
+    finger_max_opening: 0.017
+    gripper_speed: 50

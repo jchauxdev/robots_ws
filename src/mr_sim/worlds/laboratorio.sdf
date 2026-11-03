@@ -1,0 +1,101 @@
+<?xml version="1.0"?>
+<!-- Generado por mr_sim/world_gen.py: mismo recinto que worlds/laboratorio.png -->
+<sdf version="1.8">
+  <world name="laboratorio">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size><real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin filename="ignition-gazebo-physics-system" name="ignition::gazebo::systems::Physics"/>
+    <plugin filename="ignition-gazebo-user-commands-system" name="ignition::gazebo::systems::UserCommands"/>
+    <plugin filename="ignition-gazebo-scene-broadcaster-system" name="ignition::gazebo::systems::SceneBroadcaster"/>
+    <plugin filename="ignition-gazebo-sensors-system" name="ignition::gazebo::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <light type="directional" name="sol"><cast_shadows>true</cast_shadows><pose>0 0 10 0 0 0</pose>
+      <diffuse>0.9 0.9 0.9 1</diffuse><direction>-0.5 0.1 -0.9</direction></light>
+    <model name="piso"><static>true</static>
+      <link name="link">
+        <collision name="c"><geometry><plane><normal>0 0 1</normal><size>40 40</size></plane></geometry></collision>
+        <visual name="v"><geometry><plane><normal>0 0 1</normal><size>40 40</size></plane></geometry>
+          <material><ambient>0.8 0.8 0.8 1</ambient><diffuse>0.8 0.8 0.8 1</diffuse></material></visual>
+      </link></model>
+    <model name="muro_sur"><static>true</static><pose>6.000 0.050 0.500 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>12.000 0.100 1.000</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>12.000 0.100 1.000</size></box></geometry>
+          <material><ambient>0.6 0.6 0.65 1</ambient><diffuse>0.7 0.7 0.75 1</diffuse></material></visual>
+      </link></model>
+    <model name="muro_norte"><static>true</static><pose>6.000 7.950 0.500 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>12.000 0.100 1.000</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>12.000 0.100 1.000</size></box></geometry>
+          <material><ambient>0.6 0.6 0.65 1</ambient><diffuse>0.7 0.7 0.75 1</diffuse></material></visual>
+      </link></model>
+    <model name="muro_oeste"><static>true</static><pose>0.050 4.000 0.500 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>0.100 8.000 1.000</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.100 8.000 1.000</size></box></geometry>
+          <material><ambient>0.6 0.6 0.65 1</ambient><diffuse>0.7 0.7 0.75 1</diffuse></material></visual>
+      </link></model>
+    <model name="muro_este"><static>true</static><pose>11.950 4.000 0.500 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>0.100 8.000 1.000</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.100 8.000 1.000</size></box></geometry>
+          <material><ambient>0.6 0.6 0.65 1</ambient><diffuse>0.7 0.7 0.75 1</diffuse></material></visual>
+      </link></model>
+    <model name="tabique_a"><static>true</static><pose>6.050 1.650 0.500 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>0.100 3.100 1.000</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.100 3.100 1.000</size></box></geometry>
+          <material><ambient>0.6 0.6 0.65 1</ambient><diffuse>0.7 0.7 0.75 1</diffuse></material></visual>
+      </link></model>
+    <model name="tabique_b"><static>true</static><pose>6.050 6.150 0.500 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>0.100 3.500 1.000</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.100 3.500 1.000</size></box></geometry>
+          <material><ambient>0.6 0.6 0.65 1</ambient><diffuse>0.7 0.7 0.75 1</diffuse></material></visual>
+      </link></model>
+    <model name="mesa_cobot"><static>true</static><pose>1.200 6.750 0.150 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>1.200 0.700 0.300</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>1.200 0.700 0.300</size></box></geometry>
+          <material><ambient>0.6 0.6 0.65 1</ambient><diffuse>0.7 0.7 0.75 1</diffuse></material></visual>
+      </link></model>
+    <model name="estante_1"><static>true</static><pose>3.700 0.350 0.900 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>1.800 0.500 1.800</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>1.800 0.500 1.800</size></box></geometry>
+          <material><ambient>0.6 0.6 0.65 1</ambient><diffuse>0.7 0.7 0.75 1</diffuse></material></visual>
+      </link></model>
+    <model name="mesa_central"><static>true</static><pose>3.200 3.900 0.375 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>1.200 1.000 0.750</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>1.200 1.000 0.750</size></box></geometry>
+          <material><ambient>0.6 0.6 0.65 1</ambient><diffuse>0.7 0.7 0.75 1</diffuse></material></visual>
+      </link></model>
+    <model name="columna"><static>true</static><pose>4.750 6.150 1.250 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>0.300 0.300 2.500</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.300 0.300 2.500</size></box></geometry>
+          <material><ambient>0.6 0.6 0.65 1</ambient><diffuse>0.7 0.7 0.75 1</diffuse></material></visual>
+      </link></model>
+    <model name="estante_2"><static>true</static><pose>8.100 7.600 0.900 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>2.200 0.600 1.800</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>2.200 0.600 1.800</size></box></geometry>
+          <material><ambient>0.6 0.6 0.65 1</ambient><diffuse>0.7 0.7 0.75 1</diffuse></material></visual>
+      </link></model>
+    <model name="mesa_e"><static>true</static><pose>10.100 3.800 0.375 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>1.000 1.600 0.750</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>1.000 1.600 0.750</size></box></geometry>
+          <material><ambient>0.6 0.6 0.65 1</ambient><diffuse>0.7 0.7 0.75 1</diffuse></material></visual>
+      </link></model>
+    <model name="caja_1"><static>true</static><pose>8.250 1.450 0.250 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>0.500 0.500 0.500</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.500 0.500 0.500</size></box></geometry>
+          <material><ambient>0.6 0.6 0.65 1</ambient><diffuse>0.7 0.7 0.75 1</diffuse></material></visual>
+      </link></model>
+  </world>
+</sdf>

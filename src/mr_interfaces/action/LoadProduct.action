@@ -1,0 +1,12 @@
+# Solicitud del robot movil al cobot: cargar 'quantity' unidades de 'product' sobre la bandeja.
+string order_id
+string product
+int32 quantity
+---
+bool success
+string message
+int32 loaded
+---
+string stage
+int32 loaded
+float32 progress

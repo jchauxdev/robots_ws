@@ -1,0 +1,10 @@
+# Accion de la celda (Dia 5): recoger el objeto 'label' y dejarlo en 'place_pose'.
+string label
+geometry_msgs/PoseStamped place_pose
+bool use_place_pose         # false => el servidor usa el contenedor asignado a la clase
+---
+bool success
+string message
+---
+string stage
+float32 progress

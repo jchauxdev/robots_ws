@@ -1,0 +1,30 @@
+# ROS 2 Humble para la Jetson Nano (JetPack 4.6.x = L4T R32.7.x, Ubuntu 18.04).
+# La Nano no tiene paquetes apt de Humble (Humble requiere Ubuntu 22.04): se usa la imagen de NVIDIA
+# jetson-containers, que trae ROS 2 Humble COMPILADO DESDE FUENTE. Por eso no se instalan ros-humble-* por apt:
+# los paquetes adicionales se compilan desde fuente (README de jetson-containers, paquete "ros").
+#
+#   docker build -f Dockerfile.nano -t mr_robot:humble-nano .
+#
+FROM dustynv/ros:humble-ros-base-l4t-r32.7.1
+
+ENV ROS_DOMAIN_ID=20 \
+    RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        python3-serial python3-yaml v4l-utils usbutils git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Dependencias ROS desde fuente: driver del RPLidar (rama ros2 de Slamtec) y xacro
+WORKDIR /opt/mr_deps
+RUN mkdir -p src && cd src \
+    && git clone --depth 1 -b ros2 https://github.com/Slamtec/rplidar_ros.git \
+    && git clone --depth 1 -b ros2 https://github.com/ros/xacro.git \
+    && cd /opt/mr_deps && . /opt/ros/humble/install/setup.sh \
+    && colcon build --merge-install --cmake-args -DCMAKE_BUILD_TYPE=Release \
+    && rm -rf build log
+
+# Espacio de trabajo del robot (se monta desde la Jetson con -v para poder editarlo; ver run_nano.sh)
+WORKDIR /root/robots_ws
+RUN echo 'source /opt/ros/humble/install/setup.bash' >> /root/.bashrc \
+    && echo 'source /opt/mr_deps/install/setup.bash' >> /root/.bashrc \
+    && echo '[ -f /root/robots_ws/install/setup.bash ] && source /root/robots_ws/install/setup.bash' >> /root/.bashrc

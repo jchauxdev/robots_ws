@@ -1,0 +1,23 @@
+# Calibracion NOMINAL (pinhole, FOV horizontal 60 grados, sin distorsion) para 640x480.
+# REEMPLAZAR por el resultado de la calibracion (DA-09): practicas/dia2_vision/calibrar_camara.py
+# o: ros2 run camera_calibration cameracalibrator --size 8x6 --square 0.025 ...
+image_width: 640
+image_height: 480
+camera_name: wrist_camera
+camera_matrix:
+  rows: 3
+  cols: 3
+  data: [554.2563, 0.0, 320.0, 0.0, 554.2563, 240.0, 0.0, 0.0, 1.0]
+distortion_model: plumb_bob
+distortion_coefficients:
+  rows: 1
+  cols: 5
+  data: [0.0, 0.0, 0.0, 0.0, 0.0]
+rectification_matrix:
+  rows: 3
+  cols: 3
+  data: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+projection_matrix:
+  rows: 3
+  cols: 4
+  data: [554.2563, 0.0, 320.0, 0.0, 0.0, 554.2563, 240.0, 0.0, 0.0, 0.0, 1.0, 0.0]

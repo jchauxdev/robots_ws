@@ -1,0 +1,20 @@
+inicio:
+  x: 1.0
+  y: 1.0
+  yaw: 0.0
+cobot:
+  x: 1.2
+  y: 6.15
+  yaw: -1.5708
+estacion_A:
+  x: 4.0
+  y: 2.0
+  yaw: 0.0
+estacion_B:
+  x: 9.0
+  y: 6.0
+  yaw: 0.0
+estacion_C:
+  x: 10.8
+  y: 1.0
+  yaw: -1.5708
