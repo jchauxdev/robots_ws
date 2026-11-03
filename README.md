@@ -22,7 +22,19 @@ git clone --filter=blob:none --sparse https://github.com/jchauxdev/robots_ws.git
 cd ~/robots_ws && colcon build
 ```
 
-La Jetson Nano (Ubuntu 18.04, git 2.17) usa otro método; está explicado en su DA-11.2.
+**Terminal – Jetson Nano (Ubuntu 18.04)**
+
+La Nano trae git 2.17, que no tiene el comando `git sparse-checkout`; se usa el método clásico (detalle en el DA-11.2):
+
+```bash
+git clone --no-checkout --depth 1 https://github.com/jchauxdev/robots_ws.git ~/robots_ws
+cd ~/robots_ws
+git config core.sparseCheckout true
+printf '/*.md\n/.gitignore\n/docker/\n/src/mr_base/\n' > .git/info/sparse-checkout
+git checkout main
+```
+
+Para agregar paquetes en la Nano: `printf '/src/mr_description/\n' >> .git/info/sparse-checkout` y luego `git read-tree -mu HEAD`.
 
 ### 2. Agregar paquetes (Paso 0 de cada DA)
 
