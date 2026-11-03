@@ -6,25 +6,27 @@ Formato YAML (marco 'map', metros y grados para que sea facil de editar a mano):
     cobot:      {x: 0.20, y: 5.15, yaw_deg: -90.0, descripcion: "Atraque frente al JetCobot"}
     estacion_A: {x: 3.00, y: 1.00, yaw_deg: 0.0,   descripcion: "Entrega A"}
 """
-from __future__ import annotations
-
 import math
 import re
-from dataclasses import dataclass
 from pathlib import Path
+from typing import Dict, Tuple, Union
 
 import yaml
 
 NAME_RE = re.compile(r'^[A-Za-z0-9_\-]{1,40}$')
 
 
-@dataclass
 class Station:
-    name: str
-    x: float
-    y: float
-    yaw: float            # rad
-    description: str = ''
+    """Punto con nombre (x, y en m; yaw en rad)."""
+
+    def __init__(self, name: str, x: float, y: float, yaw: float, description: str = ''):
+        self.name, self.x, self.y, self.yaw, self.description = name, x, y, yaw, description
+
+    def __eq__(self, other):
+        return isinstance(other, Station) and vars(self) == vars(other)
+
+    def __repr__(self):
+        return 'Station({!r}, x={:.3f}, y={:.3f}, yaw={:.3f})'.format(self.name, self.x, self.y, self.yaw)
 
     def to_dict(self):
         return {'x': round(self.x, 3), 'y': round(self.y, 3), 'yaw_deg': round(math.degrees(self.yaw), 1),
@@ -35,7 +37,7 @@ def valid_name(name: str) -> bool:
     return bool(NAME_RE.match(name or ''))
 
 
-def load(path: str | Path) -> tuple[str, dict[str, Station]]:
+def load(path: Union[str, Path]) -> Tuple[str, Dict[str, Station]]:
     p = Path(path)
     if not p.exists():
         return 'map', {}
@@ -48,7 +50,7 @@ def load(path: str | Path) -> tuple[str, dict[str, Station]]:
     return frame, out
 
 
-def save(path: str | Path, frame: str, stations: dict[str, Station]):
+def save(path: Union[str, Path], frame: str, stations: Dict[str, Station]):
     data = {'frame_id': frame, 'estaciones': {n: s.to_dict() for n, s in stations.items()}}
     Path(path).write_text('# Estaciones del robot movil (generado/actualizado por station_manager)\n' +
                           yaml.safe_dump(data, sort_keys=False, allow_unicode=True))

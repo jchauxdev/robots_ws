@@ -13,10 +13,8 @@ Integracion exacta por arco de circunferencia entre dos lecturas de encoder (Sie
                  y -= R [cos(th+dth) - cos(th)]
                  th += dth
 """
-from __future__ import annotations
-
 import math
-from dataclasses import dataclass
+from typing import Optional, Tuple
 
 
 def ticks_per_meter(encoder_cpr: float, gear_ratio: float, wheel_diameter: float) -> float:
@@ -32,13 +30,13 @@ def normalize_angle(a: float) -> float:
     return math.atan2(math.sin(a), math.cos(a))
 
 
-def twist_to_wheels(v: float, w: float, wheel_separation: float) -> tuple[float, float]:
+def twist_to_wheels(v: float, w: float, wheel_separation: float) -> Tuple[float, float]:
     """(v_L, v_R) en m/s."""
     return v - w * wheel_separation / 2.0, v + w * wheel_separation / 2.0
 
 
 def limit_twist(v: float, w: float, v_max: float, w_max: float, wheel_separation: float,
-                wheel_v_max: float | None = None) -> tuple[float, float]:
+                wheel_v_max: Optional[float] = None) -> Tuple[float, float]:
     """Satura v y w y, si se indica, escala ambos para no superar la velocidad maxima de rueda
     (conserva la curvatura w/v, a diferencia de saturar cada rueda por separado)."""
     v = max(-v_max, min(v_max, v))
@@ -52,11 +50,14 @@ def limit_twist(v: float, w: float, v_max: float, w_max: float, wheel_separation
     return v, w
 
 
-@dataclass
 class Pose2D:
-    x: float = 0.0
-    y: float = 0.0
-    theta: float = 0.0
+    """Pose en el plano (x, y en m; theta en rad)."""
+
+    def __init__(self, x: float = 0.0, y: float = 0.0, theta: float = 0.0):
+        self.x, self.y, self.theta = x, y, theta
+
+    def __repr__(self):
+        return 'Pose2D(x={:.3f}, y={:.3f}, theta={:.3f})'.format(self.x, self.y, self.theta)
 
 
 class DiffDriveOdometry:
@@ -111,7 +112,7 @@ class DiffDriveOdometry:
         return True
 
 
-def yaw_to_quaternion(yaw: float) -> tuple[float, float, float, float]:
+def yaw_to_quaternion(yaw: float) -> Tuple[float, float, float, float]:
     """(x, y, z, w) de una rotacion pura en z."""
     return 0.0, 0.0, math.sin(yaw / 2.0), math.cos(yaw / 2.0)
 

@@ -15,11 +15,10 @@ Diferencias corregidas respecto al paquete ROS 1 'roboclaw_ros' usado en la vers
   * "Read Status" (cmd 90) devuelve 4 bytes en firmware actual (la version anterior leia 2 y fallaba el CRC).
   * SpeedAccelM1M2 usa el comando 40 (la version anterior enviaba el 38, que es de un solo motor).
 """
-from __future__ import annotations
-
 import struct
 import threading
 import time
+from typing import List, Optional, Tuple
 
 try:
     import serial  # pyserial
@@ -78,7 +77,7 @@ WARNING_BITS = {
 }
 
 
-def decode_status(status: int, generation: str = "v5") -> tuple[list[str], list[str]]:
+def decode_status(status: int, generation: str = "v5") -> Tuple[List[str], List[str]]:
     """Devuelve (errores, avisos) a partir de la palabra del comando 90."""
     if generation == "v5":
         errs = [t for b, (t, lvl) in STATUS_V5.items() if status & b and lvl == 2]
@@ -159,7 +158,7 @@ class RoboClaw:
             self.crc_errors += 1
             return False
 
-    def _transact_read(self, cmd: int, nbytes: int) -> bytes | None:
+    def _transact_read(self, cmd: int, nbytes: int) -> Optional[bytes]:
         head = bytes([self.address, cmd])
         with self._lock:
             for _ in range(self.retries):
@@ -174,7 +173,7 @@ class RoboClaw:
             return None
 
     # ------------------------------------------------------------------ lectura
-    def read_version(self) -> str | None:
+    def read_version(self) -> Optional[str]:
         head = bytes([self.address, Cmd.GETVERSION])
         with self._lock:
             for _ in range(self.retries):
@@ -194,14 +193,14 @@ class RoboClaw:
                     return buf[:-1].decode(errors="replace").strip()
             return None
 
-    def read_encoder(self, motor: int) -> tuple[int, int] | None:
+    def read_encoder(self, motor: int) -> Optional[Tuple[int, int]]:
         """Cuenta de cuadratura (con signo, 32 bits) y byte de estado del motor 1 o 2."""
         body = self._transact_read(Cmd.GETM1ENC if motor == 1 else Cmd.GETM2ENC, 5)
         if body is None:
             return None
         return to_s32(struct.unpack(">I", body[:4])[0]), body[4]
 
-    def read_speed(self, motor: int) -> int | None:
+    def read_speed(self, motor: int) -> Optional[int]:
         """Velocidad medida en pulsos/s (QPPS) con signo."""
         body = self._transact_read(Cmd.GETM1SPEED if motor == 1 else Cmd.GETM2SPEED, 5)
         if body is None:
@@ -211,30 +210,30 @@ class RoboClaw:
             v = -v
         return v
 
-    def read_main_battery(self) -> float | None:
+    def read_main_battery(self) -> Optional[float]:
         body = self._transact_read(Cmd.GETMBATT, 2)
         return None if body is None else struct.unpack(">H", body)[0] / 10.0
 
-    def read_logic_battery(self) -> float | None:
+    def read_logic_battery(self) -> Optional[float]:
         body = self._transact_read(Cmd.GETLBATT, 2)
         return None if body is None else struct.unpack(">H", body)[0] / 10.0
 
-    def read_temperature(self) -> float | None:
+    def read_temperature(self) -> Optional[float]:
         body = self._transact_read(Cmd.GETTEMP, 2)
         return None if body is None else struct.unpack(">H", body)[0] / 10.0
 
-    def read_currents(self) -> tuple[float, float] | None:
+    def read_currents(self) -> Optional[Tuple[float, float]]:
         body = self._transact_read(Cmd.GETCURRENTS, 4)
         if body is None:
             return None
         c1, c2 = struct.unpack(">hh", body)
         return c1 / 100.0, c2 / 100.0  # unidades de 10 mA -> A
 
-    def read_status(self) -> int | None:
+    def read_status(self) -> Optional[int]:
         body = self._transact_read(Cmd.GETERROR, 4)
         return None if body is None else struct.unpack(">I", body)[0]
 
-    def read_velocity_pid(self, motor: int) -> dict | None:
+    def read_velocity_pid(self, motor: int) -> Optional[dict]:
         """P, I, D (punto fijo 16.16) y QPPS configurados en Motion Studio."""
         body = self._transact_read(Cmd.READM1PID if motor == 1 else Cmd.READM2PID, 16)
         if body is None:
