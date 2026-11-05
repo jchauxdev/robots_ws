@@ -90,6 +90,7 @@ class BaseNode(Node):
         self.last_cmd_time = None
         self.stopped = True
         self.lock = threading.Lock()
+        self.link_up = True
 
         self.odom_pub = self.create_publisher(Odometry, 'odom', 10)
         self.js_pub = self.create_publisher(JointState, 'joint_states', 10)
@@ -154,13 +155,34 @@ class BaseNode(Node):
             self.send_wheels(*twist_to_wheels(v, w, self.b))
 
         ticks = self.read_ticks()
+        self.check_link()
         if ticks is None:
-            self.get_logger().warn('Lectura de encoders fallida', throttle_duration_sec=2.0)
+            if self.rc.connected:
+                self.get_logger().warn('Lectura de encoders fallida', throttle_duration_sec=2.0)
             return
         t = now.nanoseconds * 1e-9
         if not self.odom.update(ticks[0], ticks[1], t):
             self.get_logger().warn('Salto de encoder descartado', throttle_duration_sec=2.0)
         self.publish(now, ticks)
+
+    def check_link(self):
+        """Avisa cuando se pierde o se recupera el puerto del RoboClaw (el nodo sigue vivo y reintenta)."""
+        up = self.rc.connected
+        if up == self.link_up:
+            if not up:
+                self.get_logger().warn(f'Sin conexion con el RoboClaw en {self.port}: reintentando',
+                                       throttle_duration_sec=5.0)
+            return
+        self.link_up = up
+        if up:
+            self.get_logger().info(f'RoboClaw reconectado en {self.port}')
+            self.stopped = False
+        else:
+            self.get_logger().error(
+                f'Se perdio la conexion con el RoboClaw en {self.port} ({self.rc.last_error}). '
+                'Causas habituales: cable USB flojo o con ruido, caida de tension al arrancar los motores, '
+                'u otro programa usando el puerto (otro mr_base, el servicio mr-robot, ModemManager). '
+                'Se reintenta cada segundo.')
 
     def publish(self, now, ticks):
         pose, stamp = self.odom.pose, now.to_msg()
@@ -208,6 +230,9 @@ class BaseNode(Node):
         if cur is not None:
             vals['corriente_M1_A'], vals['corriente_M2_A'] = f'{cur[0]:.2f}', f'{cur[1]:.2f}'
         vals['errores_crc'] = str(self.rc.crc_errors)
+        vals['conectado'] = 'si' if self.rc.connected else 'no'
+        vals['desconexiones'] = str(self.rc.io_errors)
+        vals['reconexiones'] = str(self.rc.reconnects)
         st.level, st.message = DiagnosticStatus.OK, 'OK'
         if status is None:
             st.level, st.message = DiagnosticStatus.WARN, 'Sin respuesta a Read Status'
@@ -218,6 +243,8 @@ class BaseNode(Node):
                 st.level, st.message = DiagnosticStatus.ERROR, '; '.join(errs)
             elif warns:
                 st.level, st.message = DiagnosticStatus.WARN, '; '.join(warns)
+        if not self.rc.connected:
+            st.level, st.message = DiagnosticStatus.ERROR, f'Sin conexion con el RoboClaw ({self.rc.last_error})'
         st.values = [KeyValue(key=k, value=v) for k, v in vals.items()]
         arr = DiagnosticArray()
         arr.header.stamp = self.get_clock().now().to_msg()

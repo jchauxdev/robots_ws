@@ -25,6 +25,14 @@ try:
 except ImportError:  # permite importar el modulo (p. ej. para pruebas de CRC) sin pyserial
     serial = None
 
+# errores del puerto: cable desconectado, RoboClaw reiniciado o puerto abierto por otro proceso
+try:
+    import termios
+    _TERMIOS_ERR = (termios.error,)   # tcflush sobre un puerto que desaparecio
+except ImportError:  # Windows
+    _TERMIOS_ERR = ()
+_PORT_ERRORS = ((serial.SerialException, OSError) if serial is not None else (OSError,)) + _TERMIOS_ERR
+
 
 class Cmd:
     M1FORWARD = 0
@@ -122,6 +130,10 @@ class RoboClaw:
         self._lock = threading.Lock()
         self._ser = None
         self.crc_errors = 0
+        self.io_errors = 0        # veces que se perdio el puerto
+        self.reconnects = 0       # reconexiones exitosas
+        self.last_error = ''
+        self._next_retry = 0.0
 
     # ------------------------------------------------------------------ conexion
     def open(self):
@@ -135,8 +147,37 @@ class RoboClaw:
 
     def close(self):
         if self._ser is not None:
-            self._ser.close()
+            try:
+                self._ser.close()
+            except _PORT_ERRORS:
+                pass
             self._ser = None
+
+    @property
+    def connected(self) -> bool:
+        return self._ser is not None
+
+    def _port_lost(self, exc):
+        """El puerto fallo (USB desconectado, RoboClaw reiniciado, otro proceso en el puerto)."""
+        self.io_errors += 1
+        self.last_error = str(exc)
+        self.close()
+        self._next_retry = time.monotonic() + 1.0
+
+    def _ensure_open(self) -> bool:
+        """Reabre el puerto si se perdio (como maximo un intento por segundo)."""
+        if self._ser is not None:
+            return True
+        if serial is None or time.monotonic() < self._next_retry:
+            return False
+        try:
+            self.open()
+        except _PORT_ERRORS as exc:
+            self.last_error = str(exc)
+            self._next_retry = time.monotonic() + 1.0
+            return False
+        self.reconnects += 1
+        return True
 
     def __enter__(self):
         return self.open()
@@ -149,48 +190,64 @@ class RoboClaw:
         pkt = bytes([self.address, cmd]) + payload
         pkt += struct.pack(">H", crc16(pkt))
         with self._lock:
-            for _ in range(self.retries):
-                self._ser.reset_input_buffer()
-                self._ser.write(pkt)
-                ack = self._ser.read(1)
-                if ack == b"\xff":
-                    return True
+            if not self._ensure_open():
+                return False
+            try:
+                for _ in range(self.retries):
+                    self._ser.reset_input_buffer()
+                    self._ser.write(pkt)
+                    ack = self._ser.read(1)
+                    if ack == b"\xff":
+                        return True
+            except _PORT_ERRORS as exc:
+                self._port_lost(exc)
+                return False
             self.crc_errors += 1
             return False
 
     def _transact_read(self, cmd: int, nbytes: int) -> Optional[bytes]:
         head = bytes([self.address, cmd])
         with self._lock:
-            for _ in range(self.retries):
-                self._ser.reset_input_buffer()
-                self._ser.write(head)
-                data = self._ser.read(nbytes + 2)
-                if len(data) == nbytes + 2:
-                    body, rx_crc = data[:nbytes], struct.unpack(">H", data[nbytes:])[0]
-                    if crc16(head + body) == rx_crc:
-                        return body
-                self.crc_errors += 1
+            if not self._ensure_open():
+                return None
+            try:
+                for _ in range(self.retries):
+                    self._ser.reset_input_buffer()
+                    self._ser.write(head)
+                    data = self._ser.read(nbytes + 2)
+                    if len(data) == nbytes + 2:
+                        body, rx_crc = data[:nbytes], struct.unpack(">H", data[nbytes:])[0]
+                        if crc16(head + body) == rx_crc:
+                            return body
+                    self.crc_errors += 1
+            except _PORT_ERRORS as exc:
+                self._port_lost(exc)
             return None
 
     # ------------------------------------------------------------------ lectura
     def read_version(self) -> Optional[str]:
         head = bytes([self.address, Cmd.GETVERSION])
         with self._lock:
-            for _ in range(self.retries):
-                self._ser.reset_input_buffer()
-                self._ser.write(head)
-                buf = bytearray()
-                while len(buf) < 48:
-                    c = self._ser.read(1)
-                    if not c:
-                        break
-                    buf += c
-                    if c == b"\x00":
-                        break
-                crc = self._ser.read(2)
-                if buf.endswith(b"\x00") and len(crc) == 2 and \
-                        crc16(head + bytes(buf)) == struct.unpack(">H", crc)[0]:
-                    return buf[:-1].decode(errors="replace").strip()
+            if not self._ensure_open():
+                return None
+            try:
+                for _ in range(self.retries):
+                    self._ser.reset_input_buffer()
+                    self._ser.write(head)
+                    buf = bytearray()
+                    while len(buf) < 48:
+                        c = self._ser.read(1)
+                        if not c:
+                            break
+                        buf += c
+                        if c == b"\x00":
+                            break
+                    crc = self._ser.read(2)
+                    if buf.endswith(b"\x00") and len(crc) == 2 and \
+                            crc16(head + bytes(buf)) == struct.unpack(">H", crc)[0]:
+                        return buf[:-1].decode(errors="replace").strip()
+            except _PORT_ERRORS as exc:
+                self._port_lost(exc)
             return None
 
     def read_encoder(self, motor: int) -> Optional[Tuple[int, int]]:
