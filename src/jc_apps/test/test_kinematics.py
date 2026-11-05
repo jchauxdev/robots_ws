@@ -22,7 +22,7 @@ def _urdf():
 def test_fk_zero_and_ready():
     ch = SerialChain(_urdf(), "world", "tcp")
     T0 = ch.fk(np.zeros(6))
-    assert np.allclose(T0[:3, 3], [0.1406, -0.0646, 0.4361], atol=1e-3)
+    assert np.allclose(T0[:3, 3], [0.1406, -0.0646, 0.4140], atol=1e-3)
     Tr = ch.fk(np.radians([0, 0, -90, 0, 0, 0]))
     assert np.allclose(Tr[:3, 2], [0, 0, -1], atol=1e-6)  # TCP hacia abajo
 

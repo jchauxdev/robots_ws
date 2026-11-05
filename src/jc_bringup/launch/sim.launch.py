@@ -79,6 +79,8 @@ def _setup(context):
 def generate_launch_description():
     bringup = get_package_share_directory("jc_bringup")
     models = os.path.join(bringup, "models")
+    # carpeta share/ que contiene jc_description: Gazebo resuelve ahi las mallas package://jc_description/...
+    models += ":" + os.path.dirname(get_package_share_directory("jc_description"))
     old = os.environ.get("IGN_GAZEBO_RESOURCE_PATH", "")
     # Ruta del plugin ign_ros2_control (normalmente la agrega su env-hook; se fuerza por robustez)
     plug = os.path.join(get_package_prefix("ign_ros2_control"), "lib")

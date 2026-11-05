@@ -1,12 +1,16 @@
 <?xml version="1.0"?>
 <!--
-  Modelo cinematico del JetCobot (Yahboom), equivalente al myCobot 280 Jetson Nano
-  (Elephant Robotics). Los origenes y ejes de las articulaciones se toman de
+  Modelo cinematico del JetCobot de Yahboom (brazo de 6 ejes + pinza, construido sobre el
+  myCobot 280 de Elephant Robotics). Los ejes de las articulaciones siguen
   mycobot_description/urdf/mycobot_280_jn/mycobot_280_jn.urdf (rama humble de
-  github.com/elephantrobotics/mycobot_ros2), de modo que 0 rad en el modelo
-  corresponde a 0 grados en pymycobot (send_angles / get_angles).
-  La geometria visual/colision se aproxima con primitivas para que el modelo
-  funcione en RViz y Gazebo sin mallas externas. Los limites articulares
+  github.com/elephantrobotics/mycobot_ros2), de modo que 0 rad en el modelo corresponde a
+  0 grados en pymycobot (send_angles / get_angles); la altura de la base (J1) y la posicion
+  de la pinza y la camara se ajustaron al modelo de Yahboom (jetcobot_description), con el
+  que los ejes coinciden a menos de 2 mm.
+  modelo:=yahboom  dibuja las mallas STL de Yahboom (meshes/yahboom/, se instalan con
+                   robots_ws/tools/importar_modelo_yahboom.sh; no se publican en el repositorio).
+  modelo:=simple   dibuja primitivas (cilindros y cajas), sin archivos externos.
+  La colision usa siempre primitivas (mas livianas para MoveIt y Gazebo). Los limites articulares
   siguen la documentacion de pymycobot (MyCobot 280, send_angle).
   Las masas son estimaciones (masa total del brazo ~1.03 kg segun fabricante).
 -->
@@ -37,13 +41,22 @@
   </xacro:macro>
 
   <!-- Eslabon cilindrico con visual + colision + inercia -->
-  <xacro:macro name="cyl_link" params="name r h xyz rpy m color">
+  <xacro:macro name="cyl_link" params="name r h xyz rpy m color modelo:=simple mesh:='' mxyz:='0 0 0' mrpy:='0 0 0' mcolor:=blanco">
     <link name="${name}">
+      <xacro:if value="${modelo == 'yahboom' and mesh != ''}">
+      <visual>
+        <origin xyz="${mxyz}" rpy="${mrpy}"/>
+        <geometry><mesh filename="package://jc_description/meshes/yahboom/${mesh}"/></geometry>
+        <material name="${mcolor}"/>
+      </visual>
+      </xacro:if>
+      <xacro:unless value="${modelo == 'yahboom' and mesh != ''}">
       <visual>
         <origin xyz="${xyz}" rpy="${rpy}"/>
         <geometry><cylinder radius="${r}" length="${h}"/></geometry>
         <material name="${color}"/>
       </visual>
+      </xacro:unless>
       <collision>
         <origin xyz="${xyz}" rpy="${rpy}"/>
         <geometry><cylinder radius="${r}" length="${h}"/></geometry>
@@ -52,8 +65,8 @@
     </link>
   </xacro:macro>
 
-  <xacro:macro name="jetcobot" params="prefix:='' parent:=world tcp_offset:=0.095
-                                         cam_x:=0.036 cam_y:=0.0 cam_z:=0.020">
+  <xacro:macro name="jetcobot" params="prefix:='' parent:=world tcp_offset:=0.095 modelo:=simple
+                                         cam_x:=0.0 cam_y:=-0.034 cam_z:=0.034">
 
     <material name="blanco"><color rgba="0.92 0.92 0.92 1"/></material>
     <material name="gris"><color rgba="0.35 0.35 0.38 1"/></material>
@@ -62,16 +75,25 @@
 
     <!-- ===================== BASE ===================== -->
     <link name="${prefix}base_link">
+      <xacro:if value="${modelo == 'yahboom'}">
       <visual>
-        <origin xyz="0 0 0.0625" rpy="0 0 0"/>
-        <geometry><cylinder radius="0.045" length="0.125"/></geometry>
+        <origin xyz="0.00000 0.00000 0.00000" rpy="0.00000 -0.00000 0.00000"/>
+        <geometry><mesh filename="package://jc_description/meshes/yahboom/base_link.STL"/></geometry>
         <material name="gris"/>
       </visual>
+      </xacro:if>
+      <xacro:unless value="${modelo == 'yahboom'}">
+      <visual>
+        <origin xyz="0 0 0.038" rpy="0 0 0"/>
+        <geometry><cylinder radius="0.048" length="0.076"/></geometry>
+        <material name="gris"/>
+      </visual>
+      </xacro:unless>
       <collision>
-        <origin xyz="0 0 0.0625" rpy="0 0 0"/>
-        <geometry><cylinder radius="0.045" length="0.125"/></geometry>
+        <origin xyz="0 0 0.038" rpy="0 0 0"/>
+        <geometry><cylinder radius="0.048" length="0.076"/></geometry>
       </collision>
-      <xacro:cyl_inertial m="0.33" r="0.045" h="0.125" xyz="0 0 0.0625" rpy="0 0 0"/>
+      <xacro:cyl_inertial m="0.49" r="0.048" h="0.076" xyz="0 0 0.038" rpy="0 0 0"/>
     </link>
 
     <joint name="${prefix}base_joint" type="fixed">
@@ -81,17 +103,20 @@
     </joint>
 
     <!-- ===================== J1 ===================== -->
-    <xacro:cyl_link name="${prefix}link1" r="0.030" h="0.058" xyz="0 0 -0.029" rpy="0 0 0" m="0.12" color="blanco"/>
+    <xacro:cyl_link name="${prefix}link1" r="0.030" h="0.058" xyz="0 0 -0.029" rpy="0 0 0" m="0.12" color="blanco"
+        modelo="${modelo}" mesh="1_Link.STL" mxyz="0.00000 0.00000 -0.06094" mrpy="0.00000 -0.00000 0.00000"/>
     <joint name="${prefix}joint1" type="revolute">
       <parent link="${prefix}base_link"/>
       <child link="${prefix}link1"/>
-      <origin xyz="0 0 0.15756" rpy="0 0 0"/>
+      <!-- altura de J1 sobre la base del JetCobot de Yahboom (en el myCobot 280 JN es 0.15756) -->
+      <origin xyz="0 0 0.13546" rpy="0 0 0"/>
       <axis xyz="0 0 1"/>
       <limit lower="${-168*DEG}" upper="${168*DEG}" effort="${EFF}" velocity="${VEL}"/>
     </joint>
 
     <!-- ===================== J2 ===================== -->
-    <xacro:cyl_link name="${prefix}link2" r="0.024" h="0.1104" xyz="-0.0552 0 0" rpy="0 ${PI/2} 0" m="0.12" color="blanco"/>
+    <xacro:cyl_link name="${prefix}link2" r="0.024" h="0.1104" xyz="-0.0552 0 0" rpy="0 ${PI/2} 0" m="0.12" color="blanco"
+        modelo="${modelo}" mesh="2_Link.STL" mxyz="-0.00006 -0.00003 0.03500" mrpy="-1.57080 0.00000 1.57080"/>
     <joint name="${prefix}joint2" type="revolute">
       <parent link="${prefix}link1"/>
       <child link="${prefix}link2"/>
@@ -102,6 +127,14 @@
 
     <!-- ===================== J3 ===================== -->
     <link name="${prefix}link3">
+      <xacro:if value="${modelo == 'yahboom'}">
+      <visual>
+        <origin xyz="0.00034 -0.00003 0.02821" rpy="-1.57080 0.00000 1.57080"/>
+        <geometry><mesh filename="package://jc_description/meshes/yahboom/3_Link.STL"/></geometry>
+        <material name="blanco"/>
+      </visual>
+      </xacro:if>
+      <xacro:unless value="${modelo == 'yahboom'}">
       <visual>
         <origin xyz="-0.048 0 0" rpy="0 ${PI/2} 0"/>
         <geometry><cylinder radius="0.022" length="0.096"/></geometry>
@@ -112,6 +145,7 @@
         <geometry><cylinder radius="0.020" length="0.0646"/></geometry>
         <material name="blanco"/>
       </visual>
+      </xacro:unless>
       <collision>
         <origin xyz="-0.048 0 0" rpy="0 ${PI/2} 0"/>
         <geometry><cylinder radius="0.022" length="0.096"/></geometry>
@@ -131,7 +165,8 @@
     </joint>
 
     <!-- ===================== J4 ===================== -->
-    <xacro:cyl_link name="${prefix}link4" r="0.020" h="0.07318" xyz="0 -0.03659 0" rpy="${PI/2} 0 0" m="0.08" color="blanco"/>
+    <xacro:cyl_link name="${prefix}link4" r="0.020" h="0.07318" xyz="0 -0.03659 0" rpy="${PI/2} 0 0" m="0.08" color="blanco"
+        modelo="${modelo}" mesh="4_Link.STL" mxyz="0.00003 0.00034 -0.03506" mrpy="-1.57080 0.00000 -3.14159"/>
     <joint name="${prefix}joint4" type="revolute">
       <parent link="${prefix}link3"/>
       <child link="${prefix}link4"/>
@@ -141,7 +176,8 @@
     </joint>
 
     <!-- ===================== J5 ===================== -->
-    <xacro:cyl_link name="${prefix}link5" r="0.020" h="0.0456" xyz="0 0.0228 0" rpy="${PI/2} 0 0" m="0.07" color="blanco"/>
+    <xacro:cyl_link name="${prefix}link5" r="0.020" h="0.0456" xyz="0 0.0228 0" rpy="${PI/2} 0 0" m="0.07" color="blanco"
+        modelo="${modelo}" mesh="5_Link.STL" mxyz="-0.00152 -0.00005 -0.03869" mrpy="-0.00000 0.00000 1.57080"/>
     <joint name="${prefix}joint5" type="revolute">
       <parent link="${prefix}link4"/>
       <child link="${prefix}link5"/>
@@ -151,7 +187,8 @@
     </joint>
 
     <!-- ===================== J6 (brida) ===================== -->
-    <xacro:cyl_link name="${prefix}link6_flange" r="0.020" h="0.010" xyz="0 0 -0.005" rpy="0 0 0" m="0.03" color="negro"/>
+    <xacro:cyl_link name="${prefix}link6_flange" r="0.020" h="0.010" xyz="0 0 -0.005" rpy="0 0 0" m="0.03" color="negro"
+        modelo="${modelo}" mesh="6_Link.STL" mxyz="-0.00150 -0.00123 -0.01369" mrpy="3.14159 -1.57080 -1.57080"/>
     <joint name="${prefix}joint6" type="revolute">
       <parent link="${prefix}link5"/>
       <child link="${prefix}link6_flange"/>
@@ -162,11 +199,20 @@
 
     <!-- ===================== PINZA (simplificada, paralela) ===================== -->
     <link name="${prefix}gripper_base">
+      <xacro:if value="${modelo == 'yahboom'}">
+      <visual>
+        <origin xyz="-0.00144 0.00650 0.05022" rpy="3.14159 -1.57080 -1.57080"/>
+        <geometry><mesh filename="package://jc_description/meshes/yahboom/jiazhua_Link.STL"/></geometry>
+        <material name="negro"/>
+      </visual>
+      </xacro:if>
+      <xacro:unless value="${modelo == 'yahboom'}">
       <visual>
         <origin xyz="0 0 0.020" rpy="0 0 0"/>
         <geometry><box size="0.050 0.030 0.040"/></geometry>
         <material name="negro"/>
       </visual>
+      </xacro:unless>
       <collision>
         <origin xyz="0 0 0.020" rpy="0 0 0"/>
         <geometry><box size="0.050 0.030 0.040"/></geometry>
@@ -181,11 +227,13 @@
 
     <xacro:macro name="finger" params="side sign">
       <link name="${prefix}gripper_${side}_finger">
+        <xacro:unless value="${modelo == 'yahboom'}">
         <visual>
           <origin xyz="0 0 0.0275" rpy="0 0 0"/>
           <geometry><box size="0.008 0.020 0.055"/></geometry>
           <material name="verde_sena"/>
         </visual>
+        </xacro:unless>
         <collision>
           <origin xyz="0 0 0.0275" rpy="0 0 0"/>
           <geometry><box size="0.008 0.020 0.055"/></geometry>
@@ -214,12 +262,28 @@
 
     <!-- ===================== CAMARA EN MANO (eye-in-hand) ===================== -->
     <!-- Valor NOMINAL. El valor real se obtiene con la calibracion mano-ojo (Dia 4). -->
+    <xacro:if value="${modelo == 'yahboom'}">
+      <link name="${prefix}camera_body">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry><mesh filename="package://jc_description/meshes/yahboom/camera_Link.STL"/></geometry>
+          <material name="negro"/>
+        </visual>
+      </link>
+      <joint name="${prefix}camera_body_mount" type="fixed">
+        <parent link="${prefix}link6_flange"/>
+        <child link="${prefix}camera_body"/>
+        <origin xyz="-0.00150 -0.03623 0.01931" rpy="3.14159 -1.57080 -1.57080"/>
+      </joint>
+    </xacro:if>
     <link name="${prefix}camera_link">
+      <xacro:unless value="${modelo == 'yahboom'}">
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry><box size="0.015 0.040 0.025"/></geometry>
         <material name="negro"/>
       </visual>
+      </xacro:unless>
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry><box size="0.015 0.040 0.025"/></geometry>

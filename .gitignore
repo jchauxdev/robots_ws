@@ -7,3 +7,6 @@ __pycache__/
 
 # paquetes propios de cada equipo (se versionan en su propio repositorio)
 src/mi_celda/
+
+# Mallas de Yahboom (sin licencia declarada): se instalan con importar_modelo_yahboom.sh
+src/jc_description/meshes/yahboom/
