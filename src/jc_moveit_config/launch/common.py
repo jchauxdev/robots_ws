@@ -10,7 +10,7 @@ def modelo_jetcobot(desc: str) -> str:
     if os.path.isfile(os.path.join(desc, "meshes", "yahboom", "base_link.STL")):
         return "yahboom"
     print("[jc_description] Sin mallas de Yahboom: se dibuja el modelo simple. Para ver el JetCobot real, "
-          "ejecute ~/robots_ws/src/jc_description/scripts/importar_modelo_yahboom.sh (DA-04).")
+          "ejecute ~/robots_ws/src/jc_description/scripts/importar_modelo_yahboom.sh --descargar (DA-03, Paso 7).")
     return "simple"
 
 

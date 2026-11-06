@@ -27,7 +27,7 @@ def generate_launch_description():
     else:
         modelo = "simple"
         print("[jc_description] Sin mallas de Yahboom: se dibuja el modelo simple. Para ver el JetCobot real, "
-              "ejecute ~/robots_ws/src/jc_description/scripts/importar_modelo_yahboom.sh (DA-04).")
+              "ejecute ~/robots_ws/src/jc_description/scripts/importar_modelo_yahboom.sh --descargar (DA-03, Paso 7).")
     robot_description = ParameterValue(
         Command(["xacro ", xacro_file, " sim_mode:=mock modelo:=", modelo]), value_type=str)
 
