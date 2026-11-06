@@ -225,6 +225,10 @@
       <origin xyz="0 0 0" rpy="0 0 0"/>
     </joint>
 
+    <!-- Dedos de la pinza. Con modelo:=yahboom no se dibujan: la malla jiazhua_Link.STL de Yahboom es la pinza
+         completa en una sola pieza fija (dedos incluidos), como en el modelo original de Yahboom. Los dedos siguen
+         existiendo como colision: en Gazebo son los que aprietan la pieza aunque la pinza dibujada no se mueva.
+         Para verlos: /joint_states (gripper_left_joint, gripper_right_joint) o, en Gazebo, View > Collisions. -->
     <xacro:macro name="finger" params="side sign">
       <link name="${prefix}gripper_${side}_finger">
         <xacro:unless value="${modelo == 'yahboom'}">
