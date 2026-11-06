@@ -70,7 +70,7 @@ def _setup(context):
             Node(package="rviz2", executable="rviz2", arguments=["-d", rviz_cfg], output="log",
                  parameters=[cfg.robot_description, cfg.robot_description_semantic,
                              cfg.robot_description_kinematics, cfg.planning_pipelines,
-                             cfg.joint_limits, sim_time],
+                             sim_time],
                  condition=IfCondition(LaunchConfiguration("rviz"))),
         ]
     return actions

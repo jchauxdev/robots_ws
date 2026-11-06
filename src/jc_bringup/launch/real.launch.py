@@ -40,7 +40,7 @@ def _setup(context):
                          {"default_velocity_scaling": 0.2}]),
         Node(package="rviz2", executable="rviz2", arguments=["-d", rviz_cfg], output="log",
              parameters=[cfg.robot_description, cfg.robot_description_semantic,
-                         cfg.robot_description_kinematics, cfg.planning_pipelines, cfg.joint_limits],
+                         cfg.robot_description_kinematics, cfg.planning_pipelines],
              condition=IfCondition(LaunchConfiguration("rviz"))),
     ]
     if lc("camera").lower() == "true":

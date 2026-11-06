@@ -27,7 +27,7 @@ def _setup(context):
     return [Node(
         package="rviz2", executable="rviz2", output="log", arguments=["-d", rviz_cfg],
         parameters=[cfg.robot_description, cfg.robot_description_semantic,
-                    cfg.robot_description_kinematics, cfg.planning_pipelines, cfg.joint_limits,
+                    cfg.robot_description_kinematics, cfg.planning_pipelines,
                     {"use_sim_time": use_sim_time}])]
 
 
