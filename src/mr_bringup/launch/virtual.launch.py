@@ -11,6 +11,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node, PushRosNamespace
 from launch_ros.substitutions import FindPackageShare
+from launch.actions import SetEnvironmentVariable
 
 TF = [('/tf', 'tf'), ('/tf_static', 'tf_static')]
 
@@ -21,6 +22,8 @@ def generate_launch_description():
     base_cfg = PathJoinSubstitution([FindPackageShare('mr_bringup'), 'config', 'mr_base.yaml'])
     world = PathJoinSubstitution([FindPackageShare('mr_sim'), 'worlds', 'laboratorio.yaml'])
     return LaunchDescription([
+        # decimales con punto en los YAML de parametros aunque el sistema este en espanol (1,5 vs 1.5)
+        SetEnvironmentVariable("LC_NUMERIC", "C"),
         DeclareLaunchArgument('namespace', default_value='', description='p. ej. mr en la celda con el cobot'),
         DeclareLaunchArgument('base_config', default_value=base_cfg),
         DeclareLaunchArgument('world_map', default_value=world),

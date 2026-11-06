@@ -13,6 +13,7 @@ from launch_ros.actions import Node
 
 sys.path.append(os.path.join(get_package_share_directory("jc_moveit_config"), "launch"))
 from common import build_moveit_config  # noqa: E402
+from launch.actions import SetEnvironmentVariable  # noqa: E402
 
 
 def _setup(context):
@@ -25,5 +26,8 @@ def _setup(context):
 
 
 def generate_launch_description():
-    return LaunchDescription([DeclareLaunchArgument("use_sim_time", default_value="false"),
-                              OpaqueFunction(function=_setup)])
+    return LaunchDescription([
+        # decimales con punto en los YAML de parametros aunque el sistema este en espanol (1,5 vs 1.5)
+        SetEnvironmentVariable("LC_NUMERIC", "C"),
+        DeclareLaunchArgument("use_sim_time", default_value="false"),
+        OpaqueFunction(function=_setup)])

@@ -8,6 +8,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from launch.actions import SetEnvironmentVariable
 
 
 def generate_launch_description():
@@ -16,6 +17,8 @@ def generate_launch_description():
     world = PathJoinSubstitution([FindPackageShare('mr_sim'), 'worlds', 'laboratorio.sdf'])
     gz = PathJoinSubstitution([FindPackageShare('ros_gz_sim'), 'launch', 'gz_sim.launch.py'])
     return LaunchDescription([
+        # decimales con punto en los YAML de parametros aunque el sistema este en espanol (1,5 vs 1.5)
+        SetEnvironmentVariable("LC_NUMERIC", "C"),
         DeclareLaunchArgument('world', default_value=world),
         DeclareLaunchArgument('x0', default_value='1.0'),
         DeclareLaunchArgument('y0', default_value='1.0'),

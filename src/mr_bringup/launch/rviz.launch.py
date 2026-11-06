@@ -8,6 +8,7 @@ from launch.actions import DeclareLaunchArgument, GroupAction, OpaqueFunction
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node, PushRosNamespace
 from launch_ros.substitutions import FindPackageShare
+from launch.actions import SetEnvironmentVariable
 
 TOPICS = ('scan', 'map', 'robot_description', 'plan', 'local_plan', 'goal_pose', 'initialpose', 'clicked_point',
           'particle_cloud', 'local_costmap/costmap', 'global_costmap/costmap', 'odom')
@@ -26,6 +27,8 @@ def _setup(context):
 
 def generate_launch_description():
     return LaunchDescription([
+        # decimales con punto en los YAML de parametros aunque el sistema este en espanol (1,5 vs 1.5)
+        SetEnvironmentVariable("LC_NUMERIC", "C"),
         DeclareLaunchArgument('config', default_value='navegacion'),
         DeclareLaunchArgument('namespace', default_value=''),
         DeclareLaunchArgument('use_sim_time', default_value='false'),

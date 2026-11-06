@@ -12,6 +12,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
 from launch_ros.actions import Node, PushRosNamespace, SetRemap
 from launch_ros.substitutions import FindPackageShare
+from launch.actions import SetEnvironmentVariable
 
 
 def generate_launch_description():
@@ -21,6 +22,8 @@ def generate_launch_description():
     cam_cfg = PathJoinSubstitution([FindPackageShare('mr_bringup'), 'config', 'usb_cam.yaml'])
     rs_launch = PathJoinSubstitution([FindPackageShare('realsense2_camera'), 'launch', 'rs_launch.py'])
     return LaunchDescription([
+        # decimales con punto en los YAML de parametros aunque el sistema este en espanol (1,5 vs 1.5)
+        SetEnvironmentVariable("LC_NUMERIC", "C"),
         DeclareLaunchArgument('namespace', default_value='', description='p. ej. mr en la celda con el cobot'),
         DeclareLaunchArgument('base_config', default_value=base_cfg),
         DeclareLaunchArgument('roboclaw_port', default_value='/dev/roboclaw'),

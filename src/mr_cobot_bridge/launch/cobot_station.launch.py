@@ -5,11 +5,14 @@ from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
+from launch.actions import SetEnvironmentVariable
 
 
 def generate_launch_description():
     cfg = PathJoinSubstitution([FindPackageShare('mr_cobot_bridge'), 'config', 'cobot_station.yaml'])
     return LaunchDescription([
+        # decimales con punto en los YAML de parametros aunque el sistema este en espanol (1,5 vs 1.5)
+        SetEnvironmentVariable("LC_NUMERIC", "C"),
         DeclareLaunchArgument('dry_run', default_value='false'),
         Node(package='mr_cobot_bridge', executable='cobot_station', name='cobot_station', output='screen',
              parameters=[cfg, {'dry_run': ParameterValue(LaunchConfiguration('dry_run'), value_type=bool)}]),

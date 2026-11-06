@@ -17,6 +17,7 @@ from launch_ros.actions import Node
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from common import build_moveit_config  # noqa: E402
+from launch.actions import SetEnvironmentVariable  # noqa: E402
 
 
 def _setup(context):
@@ -33,6 +34,8 @@ def _setup(context):
 
 def generate_launch_description():
     return LaunchDescription([
+        # decimales con punto en los YAML de parametros aunque el sistema este en espanol (1,5 vs 1.5)
+        SetEnvironmentVariable("LC_NUMERIC", "C"),
         DeclareLaunchArgument("sim_mode", default_value="real",
                               description="Variante del URDF (real/mock/gazebo); solo afecta la visualizacion"),
         DeclareLaunchArgument("use_sim_time", default_value="false"),

@@ -86,6 +86,8 @@ def generate_launch_description():
     plug = os.path.join(get_package_prefix("ign_ros2_control"), "lib")
     old_plug = os.environ.get("IGN_GAZEBO_SYSTEM_PLUGIN_PATH", "")
     return LaunchDescription([
+        # decimales con punto en los YAML de parametros aunque el sistema este en espanol (1,5 vs 1.5)
+        SetEnvironmentVariable("LC_NUMERIC", "C"),
         SetEnvironmentVariable("IGN_GAZEBO_RESOURCE_PATH", models + (":" + old if old else "")),
         SetEnvironmentVariable("IGN_GAZEBO_SYSTEM_PLUGIN_PATH", plug + (":" + old_plug if old_plug else "")),
         DeclareLaunchArgument("world", default_value="celda.sdf"),

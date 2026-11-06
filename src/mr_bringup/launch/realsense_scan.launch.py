@@ -7,11 +7,14 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
+from launch.actions import SetEnvironmentVariable
 
 
 def generate_launch_description():
     lc = LaunchConfiguration
     return LaunchDescription([
+        # decimales con punto en los YAML de parametros aunque el sistema este en espanol (1,5 vs 1.5)
+        SetEnvironmentVariable("LC_NUMERIC", "C"),
         DeclareLaunchArgument('namespace', default_value=''),
         DeclareLaunchArgument('range_min', default_value='0.3'),    # zona ideal de la D435i: 0,3-3 m
         DeclareLaunchArgument('range_max', default_value='3.0'),

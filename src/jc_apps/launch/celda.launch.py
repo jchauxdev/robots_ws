@@ -11,6 +11,7 @@ from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, Opaq
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration as LC
 from launch_ros.actions import Node
+from launch.actions import SetEnvironmentVariable
 
 
 def _setup(context):
@@ -31,6 +32,8 @@ def _setup(context):
 
 def generate_launch_description():
     return LaunchDescription([
+        # decimales con punto en los YAML de parametros aunque el sistema este en espanol (1,5 vs 1.5)
+        SetEnvironmentVariable("LC_NUMERIC", "C"),
         DeclareLaunchArgument("mode", default_value="sim"),
         DeclareLaunchArgument("detector", default_value="color"),
         DeclareLaunchArgument("camera_frame", default_value="camera_optical_frame"),

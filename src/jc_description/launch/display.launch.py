@@ -11,6 +11,7 @@ from launch.conditions import IfCondition
 from launch.substitutions import Command, LaunchConfiguration
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
+from launch.actions import SetEnvironmentVariable
 
 
 def generate_launch_description():
@@ -31,6 +32,8 @@ def generate_launch_description():
         Command(["xacro ", xacro_file, " sim_mode:=mock modelo:=", modelo]), value_type=str)
 
     return LaunchDescription([
+        # decimales con punto en los YAML de parametros aunque el sistema este en espanol (1,5 vs 1.5)
+        SetEnvironmentVariable("LC_NUMERIC", "C"),
         DeclareLaunchArgument("gui", default_value="true",
                               description="Abrir joint_state_publisher_gui"),
         DeclareLaunchArgument("rviz", default_value="true"),

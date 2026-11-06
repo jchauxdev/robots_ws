@@ -10,6 +10,7 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch_ros.actions import Node
+from launch.actions import SetEnvironmentVariable
 
 
 def _setup(context):
@@ -42,6 +43,8 @@ def _setup(context):
 
 def generate_launch_description():
     return LaunchDescription([
+        # decimales con punto en los YAML de parametros aunque el sistema este en espanol (1,5 vs 1.5)
+        SetEnvironmentVariable("LC_NUMERIC", "C"),
         DeclareLaunchArgument("mode", default_value="sim", description="sim | real"),
         DeclareLaunchArgument("detector", default_value="color"),
         DeclareLaunchArgument("camera_frame", default_value="camera_optical_frame",

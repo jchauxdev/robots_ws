@@ -12,6 +12,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node, PushRosNamespace
 from launch_ros.substitutions import FindPackageShare
+from launch.actions import SetEnvironmentVariable
 
 TF = [('/tf', 'tf'), ('/tf_static', 'tf_static')]
 # RViz: los topicos de navegacion.rviz son absolutos; se reubican en el espacio de nombres del robot
@@ -52,6 +53,8 @@ def _setup(context):
 def generate_launch_description():
     share = FindPackageShare('mr_bringup')
     return LaunchDescription([
+        # decimales con punto en los YAML de parametros aunque el sistema este en espanol (1,5 vs 1.5)
+        SetEnvironmentVariable("LC_NUMERIC", "C"),
         DeclareLaunchArgument('namespace', default_value=''),
         DeclareLaunchArgument('map', default_value=PathJoinSubstitution([share, 'maps', 'laboratorio.yaml'])),
         DeclareLaunchArgument('params_file', default_value=PathJoinSubstitution([share, 'config', 'nav2_params.yaml'])),
